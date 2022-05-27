@@ -137,14 +137,18 @@ def get_item(item_id: int):
 async def add_item(name: str = Form(..., max_length=32), category: str = Form(..., max_length=12), image: UploadFile = File(...)):
     logger.info(f"Received add_item request.")
 
-    if image.content_type != "image/jpeg":
-        raise HTTPException(400, detail="Image not in jpg format.")
-
+    if image.content_type == "image/jpeg" :
+        file_extension = ".jpg"
+    elif image.content_type == "video/quicktime":
+        file_extension = ".mov"
+    else:
+        raise HTTPException(400, detail="Image not in jpg format or video not in mp4 format.")
+    
     try:
         cur = conn.cursor()
 
         image_binary = await image.read()
-        new_image_name = hashlib.sha256(image_binary).hexdigest() + ".jpg"
+        new_image_name = hashlib.sha256(image_binary).hexdigest() + file_extension
     
         image_path = image_dir / new_image_name
         with open(image_path, 'wb') as image_file:
@@ -191,8 +195,8 @@ async def get_image(image_filename: str):
     # Create image path
     image = image_dir / image_filename
 
-    if not image_filename.endswith(".jpg"):
-        raise HTTPException(status_code=400, detail="Image path does not end with .jpg")
+    # if not image_filename.endswith(".jpg"):
+    #     raise HTTPException(status_code=400, detail="Image path does not end with .jpg")
 
     if not image.exists():
         logger.info(f"Image not found: {image}")
