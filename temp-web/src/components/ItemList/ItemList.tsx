@@ -5,6 +5,7 @@ interface Item {
   name: string;
   category: string;
   image_filename: string;
+  isImage: boolean;
 };
 
 const server = process.env.API_URL || 'http://127.0.0.1:9000';
@@ -31,7 +32,12 @@ export const ItemList: React.FC<Prop> = (props) => {
       .then(response => response.json())
       .then(data => {
         console.log('GET success:', data);
+        for (var i = 0; i < data.items.length; i++) {
+          if (data.items[i].image_filename.includes(".jpg")) { data.items[i].isImage = true }
+          else data.items[i].isImage = false
+        }
         setItems(data.items);
+        console.log('GET success:', data.items);
         onLoadCompleted && onLoadCompleted();
       })
       .catch(error => {
@@ -47,14 +53,19 @@ export const ItemList: React.FC<Prop> = (props) => {
 
   return (
     <div className='ItemListGrid'>
-      { items.map((item) => {
+      {items.map((item) => {
         return (
           <div key={item.id} className='ItemList'>
             {/* TODO: Task 1: Replace the placeholder image with the item image */}
-            <div className="ItemImage" style={{ 
-              backgroundImage: `url(${server}/image/${item.image_filename})`
+            {item.isImage ?
+              <div className="ItemImage" style={{
+                backgroundImage: `url(${server}/image/${item.image_filename})`
               }}>
-            </div>
+              </div> :
+              <div className="ItemImage"> <video controls muted height="140">
+                <source src={server + "/image/" + item.image_filename} type="video/mp4"></source>
+              </video>
+              </div>}
             <div className="ItemDescriptions">
               <span className="ItemName">{item.name}</span>
               <span className="ItemCategory">{item.category}</span>
@@ -62,6 +73,6 @@ export const ItemList: React.FC<Prop> = (props) => {
           </div>
         )
       })}
-    </div>
+    </div >
   )
 };

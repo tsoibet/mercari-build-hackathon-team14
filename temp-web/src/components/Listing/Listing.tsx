@@ -56,8 +56,9 @@ export const Listing: React.FC<Prop> = (props) => {
       <form autoComplete='off' onSubmit={onSubmit}>
         <div className='InputBox'>
           <input type='text' name='name' id='name' placeholder='name' maxLength={30} value={values.name} onChange={onChange} required />
-          <input type='text' name='category' id='category' placeholder='category' maxLength={12} value={values.category} onChange={onChange} required/>
-          <input type='file' name='image' id='image' accept='.jpg,.mov' onChange={onImageChange} required />
+          <input type='text' name='category' id='category' placeholder='category' maxLength={12} value={values.category} onChange={onChange} required />
+          <input type='file' name='image' id='image' accept='.jpg,.mp4,.mov' onChange={onImageChange} required />
+
         </div>
         <div className='SubmitButton'>
           <button type='submit'>List this item</button>
