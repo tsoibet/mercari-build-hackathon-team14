@@ -151,6 +151,8 @@ async def add_item(name: str = Form(..., max_length=32), category: str = Form(..
         file_extension = ".jpg"
     elif image.content_type == "video/mp4":
         file_extension = ".mp4"
+    elif image.content_type == "video/quicktime":
+        file_extension = ".mp4"
     else:
         raise HTTPException(
             400, detail="Image not in jpg format or video not in mp4 format.")
