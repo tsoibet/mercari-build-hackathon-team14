@@ -1,7 +1,22 @@
 CREATE TABLE IF NOT EXISTS items (
-    id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, category_id INTEGER, image_filename TEXT
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    category_id INTEGER,
+    image_filename TEXT,
+    Oneliner_Description TEXT, 
+    Description TEXT,
+    Price TEXT
 );
 
 CREATE TABLE IF NOT EXISTS category (
     id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS files(
+    id INTEGER,
+    file1 TEXT,
+    file2 TEXT,
+    file3 TEXT,
+    file4 TEXT,
+    file5 TEXT
 );
