@@ -10,7 +10,7 @@ uvicorn main:app --reload --port 9000
 Then, run the commands below in an other terminal:
 
 ```
-cd frontend
+cd temp-web
 npm ci
 npm start
 ```
@@ -30,4 +30,5 @@ Below are the constraints:
 - Item name must be no longer than 32 characters
 - Category name must be no longer than 12 characters
 - Image must be in jpg or jpeg format
+- Video must be in mov format
 
