@@ -1,25 +1,21 @@
-import { useState } from 'react';
 import './App.css';
-import { ItemList } from './components/ItemList';
-import { Listing } from './components/Listing';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import ErrorPage from './pages/ErrorPage';
+import ItemUpload from './pages/ItemUpload';
+import ItemDetail from './pages/ItemDetailsPage';
 
 function App() {
   // reload ItemList after Listing complete
-  const [reload, setReload] = useState(true);
   return (
-    <div>
-      <header className='Title'>
-        <p>
-          <b>Simple Mercari</b>
-        </p>
-      </header>
-      <div>
-        <Listing onListingCompleted={() => setReload(true)} />
-      </div>
-      <div>
-        <ItemList reload={reload} onLoadCompleted={() => setReload(false)} />
-      </div>
-    </div>
+    <Router>
+      <Routes>
+        <Route path='/' element={<HomePage />} />
+        <Route path='*' element={<ErrorPage />} />
+        <Route path='/ItemUpload' element={<ItemUpload />} />
+        <Route path="/items/:itemId" element={<ItemDetail />} />
+      </Routes>
+    </Router>
   )
 }
 

@@ -1,0 +1,28 @@
+.Header {
+    height: 70px;
+    display:flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 20px;
+    padding-right:60px;
+    padding-left:70px;
+    background-color: white;
+    box-shadow: 0px 4px 20px 2px rgba(236,236,236,0.42);
+    border-radius: 0px 0px 20px 20px;
+
+    &__logo{
+        height: 30px;
+    }
+
+    &__button{
+        background-color: #0B5286;
+        border: 0px;
+        border-radius: 5px;
+        margin-right:20px
+    }
+
+    &__button:hover{
+        background-color: #3175a8;
+    }
+
+}

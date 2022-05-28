@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from "react-router-dom";
 
 interface Item {
   id: number;
@@ -9,7 +10,6 @@ interface Item {
 };
 
 const server = process.env.API_URL || 'http://127.0.0.1:9000';
-const placeholderImage = process.env.PUBLIC_URL + '/logo192.png';
 
 interface Prop {
   reload?: boolean;
@@ -56,15 +56,18 @@ export const ItemList: React.FC<Prop> = (props) => {
       {items.map((item) => {
         return (
           <div key={item.id} className='ItemList'>
-            {/* TODO: Task 1: Replace the placeholder image with the item image */}
             {item.isImage ?
-              <div className="ItemImage" style={{
-                backgroundImage: `url(${server}/image/${item.image_filename})`
-              }}>
+              <div className="ItemImage" >
+                <Link to={`/items/${item.id}`}>
+                  <img src={server + "/image/" + item.image_filename} height="140" alt="No pic" />
+                </Link>
               </div> :
-              <div className="ItemImage"> <video controls muted height="140">
-                <source src={server + "/image/" + item.image_filename} type="video/mp4"></source>
-              </video>
+              <div className="ItemImage">
+                <Link to={`/items/${item.id}`}>
+                  <video controls muted height="140">
+                    <source src={server + "/image/" + item.image_filename} type="video/mp4" />
+                  </video>
+                </Link>
               </div>}
             <div className="ItemDescriptions">
               <span className="ItemName">{item.name}</span>
