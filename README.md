@@ -1,19 +1,22 @@
 How to use:
 
-Run the commands below in a terminal:
+1. Run the commands below in a terminal:
 
 ```
 cd backend
 uvicorn main:app --reload --port 9000
 ```
 
-Then, run the commands below in an other terminal:
+2. run the commands below in an other terminal:
 
 ```
 cd temp-web
 npm ci
 npm start
 ```
+
+3. Visit http://localhost:3000
+4. Test all API endpoints on http://localhost:9000/docs
 
 This simple mercari provides basic functions as following:
 - List item
