@@ -18,10 +18,16 @@ import {
 	Select,
 	Upload,
 	Modal,
+	Divider,
 } from "antd";
 import type { UploadFile } from "antd/es/upload/interface";
 import type { RcFile, UploadProps } from "antd/es/upload";
 import { ChromePicker } from "react-color";
+import Background1 from "../../assets/Background1.jpg";
+import Background2 from "../../assets/Background2.jpg";
+import Background3 from "../../assets/Background3.jpg";
+import Background4 from "../../assets/Background4.jpg";
+import Background5 from "../../assets/Background5.jpg";
 
 const ItemUpload: React.FC = () => {
 	const [form] = Form.useForm();
@@ -32,6 +38,13 @@ const ItemUpload: React.FC = () => {
 	const [fileList, setFileList] = useState<UploadFile[]>([]);
 	const [color, setColor] = useState("");
 	const [selectedCrop, setSelectedCrop] = useState(false);
+	const [bgArray, setBgArray] = useState([
+		Background1,
+		Background2,
+		Background3,
+		Background4,
+		Background5,
+	]);
 
 	const getBase64 = (file: RcFile): Promise<string> =>
 		new Promise((resolve, reject) => {
@@ -201,18 +214,38 @@ const ItemUpload: React.FC = () => {
 							</div>
 							{selectedCrop ? (
 								<div>
-									<p className="ItemUpload__container__form__uploadModal__text">
-										Select Your Background Color
-									</p>
-									<ChromePicker
-										color={color}
-										onChangeComplete={handleChangeComplete}
-										onChange={handleColorChange}
-									/>
-									<br />
-									<p className="ItemUpload__container__form__uploadModal__text">
-										OR Choose a Background Image
-									</p>
+									<Divider></Divider>
+									<div style={{ display: "flex" }}>
+										<div>
+											<p className="ItemUpload__container__form__uploadModal__text">
+												Select Your Background Color
+											</p>
+											<ChromePicker
+												color={color}
+												onChangeComplete={handleChangeComplete}
+												onChange={handleColorChange}
+											/>
+										</div>
+										<Divider
+											type={"vertical"}
+											style={{ height: "300px", margin: "20px" }}
+										/>
+										<div>
+											<p className="ItemUpload__container__form__uploadModal__text">
+												OR Choose a Background Image
+											</p>
+											{bgArray.map((bg, i) => {
+												return (
+													<img
+														key={i}
+														className="ItemUpload__container__form__uploadModal__bgImage"
+														src={bg}
+														onClick={() => console.log(i)}
+													></img>
+												);
+											})}
+										</div>
+									</div>
 								</div>
 							) : (
 								""

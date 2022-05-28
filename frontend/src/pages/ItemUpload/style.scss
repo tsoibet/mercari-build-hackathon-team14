@@ -60,6 +60,18 @@
                     font-weight: 600
                 }
 
+                &__bgImage{
+                    width: 100px;
+					height: 100px;
+					object-fit: cover;
+					border-radius: 10px;
+				    margin: 10px
+                }
+
+                &__bgImage:hover{
+                    cursor: pointer;
+                }
+
                 &__buttonGroup {
                     margin-top: 30px;
                     min-width: 100px;
