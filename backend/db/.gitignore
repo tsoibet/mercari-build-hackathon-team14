@@ -1,6 +1,6 @@
 *.sqlite3
 *.jpg
-*.mov
+*.mp4
 
 !default.jpg
 !sameple*.jpg
