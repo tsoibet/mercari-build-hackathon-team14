@@ -52,19 +52,43 @@ def init_database():
 def add_sample_data():
     try:
         cur = conn.cursor()
+        
+        # Add sample user
+        cur.execute('''SELECT id FROM user''')
+        if (cur.fetchone() is None):
+            SAMPLE_USER = ("sample_user", hashlib.sha256(b"123456").hexdigest())
+            cur.execute('''INSERT INTO user(username, hashed_password) VALUES (?, ?)''', SAMPLE_USER)
+            conn.commit()
+            logger.debug("Added sample user.")
+        else:
+            logger.debug("Data exists. No need to add sample user.")
+
+        # Add sample categories and items
         cur.execute('''SELECT id FROM category''')
         category_result = cur.fetchone()
         if (category_result is None):
             SAMPLE_CATEGORY_LIST = [("Toy", ), ("Fruit", ), ("Dog Fashion", )]
-            SAMPLE_ITEM_LIST = [("Broken toy", 1, "sample1.jpg"), ("Miyazaki mango", 2, "sample2.jpg"), (
-                "New year costume for dog", 3, "sample3.jpg"), ("Dog hat", 3, "sample4.jpg")]
-            cur.executemany(
-                '''INSERT INTO category(name) VALUES (?)''', SAMPLE_CATEGORY_LIST)
-            cur.executemany(
-                '''INSERT INTO items(name, category_id, image_filename) VALUES (?, ?, ?)''', SAMPLE_ITEM_LIST)
-            logger.debug("Added sample data.")
+            SAMPLE_ITEM_LIST = [("Broken toy", 1, "sample1.jpg", 1), ("Miyazaki mango", 2, "sample2.jpg", 1), ("New year costume for dog", 3, "sample3.jpg", 1), ("Dog hat", 3, "sample4.jpg", 1)]
+            cur.executemany('''INSERT INTO category(name) VALUES (?)''', SAMPLE_CATEGORY_LIST)
+            cur.executemany('''INSERT INTO items(name, category_id, image_filename, user_id) VALUES (?, ?, ?, ?)''', SAMPLE_ITEM_LIST)
+            conn.commit()
+            logger.debug("Added sample items.")
         else:
-            logger.debug("Data exists. No need to add sample data.")
+            logger.debug("Data exists. No need to add sample items.")
+
+        #Add sample source and external purchase history
+        cur.execute('''SELECT id FROM source''')
+        source_result = cur.fetchone()
+        if (source_result is None):
+            SAMPLE_SOURCE = [("Amazon", )]
+            SAMPLE_HISTORY_LIST = [(1, "Fry pan", "history_sample1.jpg", 1), (1, "Tempura pot", "history_sample2.jpg", 1), (1, "Japanese teapot", "history_sample3.jpg", 1)]
+            cur.executemany('''INSERT INTO source(name) VALUES (?)''', SAMPLE_SOURCE)
+            cur.executemany('''INSERT INTO external_purchase_history(user_id, name, image_filename, source_id) VALUES (?, ?, ?, ?)''', SAMPLE_HISTORY_LIST)
+            conn.commit()
+            logger.debug("Added sample external purchase history.")
+        else:
+            logger.debug("Data exists. No need to add sample external purchase history.")
+        
     except Exception as e:
         logger.warn(f"Failed to add sample data. Error message: {e}")
         return ERR_MSG
@@ -82,7 +106,7 @@ def get_items():
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         cur.execute('''
-            SELECT items.id, items.name, category.name as category, items.image_filename
+            SELECT items.id, items.name, category.name as category, items.image_filename, items.user_id
             FROM items INNER JOIN category
             ON category.id = items.category_id
         ''')
@@ -103,7 +127,7 @@ def get_item(item_id: int):
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         cur.execute('''
-            SELECT items.id, items.name, category.name as category, items.image_filename
+            SELECT items.id, items.name, category.name as category, items.image_filename, items.user_id
             FROM items INNER JOIN category
             ON category.id = items.category_id
             WHERE items.id = (?)
@@ -144,7 +168,7 @@ def get_item(item_id: int):
 
 
 @app.post("/items")
-async def add_item(name: str = Form(..., max_length=32), category: str = Form(..., max_length=12), image: UploadFile = File(...)):
+async def add_item(name: str = Form(..., max_length=32), category: str = Form(..., max_length=12), image: UploadFile = File(...), user_id: int = 1):
     logger.info(f"Received add_item request.")
     logger.info(image.content_type)
     if image.content_type == "image/jpeg":
@@ -177,8 +201,7 @@ async def add_item(name: str = Form(..., max_length=32), category: str = Form(..
             cur.execute(
                 '''SELECT id FROM category WHERE name = (?)''', (category, ))
             category_result = cur.fetchone()
-        cur.execute('''INSERT INTO items(name, category_id, image_filename) VALUES (?, ?, ?)''',
-                    (name, category_result[0], new_image_name))
+        cur.execute('''INSERT INTO items(name, category_id, image_filename, user_id) VALUES (?, ?, ?, ?)''', (name, category_result[0], new_image_name, user_id))
         conn.commit()
         logger.info(
             f"Item {name} of {category} category is added into database.")
@@ -195,7 +218,7 @@ def search_item(keyword: str):
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         cur.execute('''
-            SELECT items.id, items.name, category.name as category, items.image_filename 
+            SELECT items.id, items.name, category.name as category, items.image_filename, items.user_id
             FROM items INNER JOIN category 
             ON category.id = items.category_id 
             WHERE items.name LIKE (?)
@@ -224,6 +247,91 @@ async def get_image(image_filename: str):
         image = image_dir / "default.jpg"
 
     return FileResponse(image)
+
+
+@app.post("/login")
+def user_login(username: str = Form(...), password: str = Form(...)):
+    logger.info(f"Received user_login request.")
+    try:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute('''SELECT id FROM user WHERE username = (?) AND hashed_password = (?)''', (username, hashlib.sha256(password.encode()).hexdigest()))
+        login_result = cur.fetchone()
+        if (login_result is None):
+            raise HTTPException(detail="Username or password not correct.")
+        logger.info(f"Returning the user id: {login_result[0]}.")
+        return login_result
+    except Exception as e:
+        logger.warn(f"Failed to login user. Error message: {e}")
+        return ERR_MSG
+
+
+@app.get("/user-external-history/{user_id}")
+def get_user_external_history(user_id: int):
+    logger.info("Received get_user_external_history request.")
+    try:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute('''SELECT * FROM user WHERE id = (?)''', (user_id, ))
+        user_result = cur.fetchone()
+        if (user_result is None):
+            raise HTTPException(status_code=404, detail="User not found")
+        cur.execute('''
+            SELECT 
+            external_purchase_history.id as historyId, 
+            external_purchase_history.name as itemName, 
+            external_purchase_history.image_filename as imageFilename, 
+            source.name as sourceName 
+            FROM 
+            external_purchase_history INNER JOIN source
+            ON 
+            external_purchase_history.source_id = source.id
+            WHERE
+            external_purchase_history.user_id = (?)
+            LIMIT 5
+        ''', (user_id, ))
+        items = cur.fetchall()
+        item_list = [dict(item) for item in items]
+        items_json = {"purchased items": item_list}
+        logger.info("Returning up to 5 external purchased items.")
+        return items_json
+    except HTTPException:
+        logger.info("Failed to get user external purchase history: User not found")
+        return "User not found"
+    except Exception as e:
+        logger.warn(f"Failed to get user external purchase history. Error message: {e}")   
+        return ERR_MSG
+
+
+@app.get("/external-history/{history_id}")
+def get_external_history(history_id: int):
+    logger.info("Received get_external_history request.")
+    try:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute('''
+            SELECT 
+            external_purchase_history.name as itemName, 
+            external_purchase_history.image_filename as imageFilename, 
+            source.name as sourceName 
+            FROM 
+            external_purchase_history INNER JOIN source
+            ON 
+            external_purchase_history.source_id = source.id
+            WHERE
+            external_purchase_history.id = (?)
+        ''', (history_id, ))
+        item_result = cur.fetchone()
+        if (item_result is None):
+            raise HTTPException(status_code=404, detail="Item not found")
+        logger.info(f"Returning the external purchased item of id: {history_id}")
+        return item_result
+    except HTTPException:
+        logger.info("Failed to get external purchased item: Item not found")
+        return "Item not found"
+    except Exception as e:
+        logger.warn(f"Failed to get external purchase history. Error message: {e}")
+        return ERR_MSG
 
 
 @app.on_event("shutdown")
