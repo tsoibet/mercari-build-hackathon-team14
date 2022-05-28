@@ -1,19 +1,43 @@
 CREATE TABLE IF NOT EXISTS items (
-    id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, category_id INTEGER, image_filename TEXT, user_id INTEGER
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER
+    name TEXT,
+    category_id INTEGER,
+    image_filename TEXT,
+    Oneliner_Description TEXT, 
+    Description TEXT,
+    Price TEXT
 );
 
 CREATE TABLE IF NOT EXISTS category (
-    id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS user (
-    id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, hashed_password TEXT
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT,
+    hashed_password TEXT
 );
 
 CREATE TABLE IF NOT EXISTS external_purchase_history (
-    id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, name TEXT, image_filename TEXT, source_id INTEGER
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    name TEXT,
+    image_filename TEXT,
+    source_id INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS source (
-    id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE
+    id INTEGER PRIMARY KEY AUTOINCREMENT, 
+    name TEXT UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS files(
+    id INTEGER,
+    file1 TEXT,
+    file2 TEXT,
+    file3 TEXT,
+    file4 TEXT,
+    file5 TEXT
 );
