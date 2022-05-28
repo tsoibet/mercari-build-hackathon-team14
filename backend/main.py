@@ -249,6 +249,21 @@ async def get_image(image_filename: str):
 
     return FileResponse(image)
 
+@app.post("/login")
+def user_login(username: str = Form(...), password: str = Form(...)):
+    logger.info(f"Received user_login request.")
+    try:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute('''SELECT id FROM user WHERE username = (?) AND hashed_password = (?)''', (username, hashlib.sha256(password.encode()).hexdigest()))
+        login_result = cur.fetchone()
+        if (login_result is None):
+            raise HTTPException(detail="Username or password not correct.")
+        logger.info(f"Returning the user id: {login_result[0]}.")
+        return login_result
+    except Exception as e:
+        logger.warn(f"Failed to login user. Error message: {e}")
+        return ERR_MSG
 
 @app.on_event("shutdown")
 def disconnect_database():
