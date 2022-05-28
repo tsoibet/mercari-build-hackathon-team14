@@ -1,6 +1,7 @@
 *.sqlite3
 *.jpg
-*.mov
+*.mp4
 
 !default.jpg
 !sameple*.jpg
+!history_sample*.jpg
