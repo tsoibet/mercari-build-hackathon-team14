@@ -1,1 +1,6 @@
 *.sqlite3
+*.jpg
+*.mov
+
+!default.jpg
+!sameple*.jpg
