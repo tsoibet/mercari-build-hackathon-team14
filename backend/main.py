@@ -106,7 +106,7 @@ def get_items():
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         cur.execute('''
-            SELECT items.id, items.name, category.name as category, items.image_filename
+            SELECT items.id, items.name, category.name as category, items.image_filename, items.user_id
             FROM items INNER JOIN category
             ON category.id = items.category_id
         ''')
@@ -127,7 +127,7 @@ def get_item(item_id: int):
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         cur.execute('''
-            SELECT items.id, items.name, category.name as category, items.image_filename
+            SELECT items.id, items.name, category.name as category, items.image_filename, items.user_id
             FROM items INNER JOIN category
             ON category.id = items.category_id
             WHERE items.id = (?)
@@ -168,7 +168,7 @@ def get_item(item_id: int):
 
 
 @app.post("/items")
-async def add_item(name: str = Form(..., max_length=32), category: str = Form(..., max_length=12), image: UploadFile = File(...)):
+async def add_item(name: str = Form(..., max_length=32), category: str = Form(..., max_length=12), image: UploadFile = File(...), user_id: int = 1):
     logger.info(f"Received add_item request.")
     logger.info(image.content_type)
     if image.content_type == "image/jpeg":
@@ -201,8 +201,7 @@ async def add_item(name: str = Form(..., max_length=32), category: str = Form(..
             cur.execute(
                 '''SELECT id FROM category WHERE name = (?)''', (category, ))
             category_result = cur.fetchone()
-        cur.execute('''INSERT INTO items(name, category_id, image_filename) VALUES (?, ?, ?)''',
-                    (name, category_result[0], new_image_name))
+        cur.execute('''INSERT INTO items(name, category_id, image_filename, user_id) VALUES (?, ?, ?, ?)''', (name, category_result[0], new_image_name, user_id))
         conn.commit()
         logger.info(
             f"Item {name} of {category} category is added into database.")
@@ -219,7 +218,7 @@ def search_item(keyword: str):
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         cur.execute('''
-            SELECT items.id, items.name, category.name as category, items.image_filename 
+            SELECT items.id, items.name, category.name as category, items.image_filename, items.user_id
             FROM items INNER JOIN category 
             ON category.id = items.category_id 
             WHERE items.name LIKE (?)
