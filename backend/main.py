@@ -304,6 +304,37 @@ def get_user_external_history(user_id: int):
         return ERR_MSG
 
 
+@app.get("/external-history/{history_id}")
+def get_external_history(history_id: int):
+    logger.info("Received get_external_history request.")
+    try:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute('''
+            SELECT 
+            external_purchase_history.name as itemName, 
+            external_purchase_history.image_filename as imageFilename, 
+            source.name as sourceName 
+            FROM 
+            external_purchase_history INNER JOIN source
+            ON 
+            external_purchase_history.source_id = source.id
+            WHERE
+            external_purchase_history.id = (?)
+        ''', (history_id, ))
+        item_result = cur.fetchone()
+        if (item_result is None):
+            raise HTTPException(status_code=404, detail="Item not found")
+        logger.info(f"Returning the external purchased item of id: {history_id}")
+        return item_result
+    except HTTPException:
+        logger.info("Failed to get external purchased item: Item not found")
+        return "Item not found"
+    except Exception as e:
+        logger.warn(f"Failed to get external purchase history. Error message: {e}")
+        return ERR_MSG
+
+
 @app.on_event("shutdown")
 def disconnect_database():
     try:
