@@ -88,8 +88,8 @@ def addBackground(img_path, img_filename, color, background_path):
             result = cv2.add(img_bg, img)
 
         # for debug
-        cv2.imshow('res', result)
-        cv2.waitKey(0)
+        #cv2.imshow('res', result)
+        #cv2.waitKey(0)
 
         print(img_base64(result))
         return img_base64(result)
