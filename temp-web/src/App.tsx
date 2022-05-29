@@ -2,7 +2,7 @@ import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import ErrorPage from './pages/ErrorPage';
-import ItemUpload from './pages/ItemUpload';
+import ItemUpload from './pages/ItemUpload/index';
 import ItemDetail from './pages/ItemDetailsPage';
 
 function App() {
