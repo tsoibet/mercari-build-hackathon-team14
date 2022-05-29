@@ -49,7 +49,6 @@ const ItemUpload: React.FC = () => {
 	const [color, setColor] = useState("");
 	const [selectedCrop, setSelectedCrop] = useState(false);
 	const [crop, setCrop] = useState<Crop>();
-	console.log(crop);
 	const bgArray = [
 		Background1,
 		Background2,
@@ -70,7 +69,10 @@ const ItemUpload: React.FC = () => {
 		form.resetFields();
 	};
 
-	const handleCancel = () => setPreviewVisible(false);
+	const handleCancel = () => {
+		setPreviewVisible(false);
+		setCrop(undefined);
+	};
 
 	const handlePreview = async (file: UploadFile) => {
 		if (!file.url && !file.preview) {
@@ -157,6 +159,29 @@ const ItemUpload: React.FC = () => {
 		return "done";
 	};
 
+	const confirmCrop = async () => {
+		if (crop) {
+			const res = await axios.post(
+				"http://localhost:9000/edit",
+				{},
+				{
+					params: {
+						image_path: "",
+						R: 0,
+						G: 0,
+						B: 0,
+						background_path: "",
+						x: crop.x,
+						y: crop.y,
+						w: crop.width,
+						l: crop.height,
+					},
+				}
+			);
+			console.log(res);
+		}
+	};
+
 	return (
 		<div className="ItemUpload">
 			<Header />
@@ -232,10 +257,7 @@ const ItemUpload: React.FC = () => {
 							getValueFromEvent={normFile}
 							rules={[{ required: true }]}
 						>
-							<Upload
-								{...uploadProps}
-								// action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
-							>
+							<Upload {...uploadProps}>
 								{fileList.length >= 5 ? null : uploadButton}
 							</Upload>
 						</Form.Item>
@@ -277,6 +299,7 @@ const ItemUpload: React.FC = () => {
 									<Button
 										type="primary"
 										className="ItemUpload__container__form__uploadModal__confirmButton"
+										onClick={confirmCrop}
 									>
 										Yes
 									</Button>
