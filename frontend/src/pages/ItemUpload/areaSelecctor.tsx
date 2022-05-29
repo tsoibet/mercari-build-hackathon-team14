@@ -1,18 +1,21 @@
 import React, { useState } from "react";
-import { AreaSelector, IArea } from "@bmunozg/react-image-area";
+import "react-image-crop/dist/ReactCrop.css";
 
-const ExampleComponent = () => {
-	const [areas, setAreas] = useState<IArea[]>([]);
+import ReactCrop, {
+	centerCrop,
+	makeAspectCrop,
+	Crop,
+	PixelCrop,
+} from "react-image-crop";
 
-	const onChangeHandler = (areas: IArea[]) => {
-		setAreas(areas);
-	};
-
+const AreaSelector = (src: any) => {
+	console.log(src);
+	const [crop, setCrop] = useState<Crop>();
 	return (
-		<AreaSelector areas={areas} onChange={onChangeHandler}>
-			<img src="my-image.jpg" alt="my image" />
-		</AreaSelector>
+		<ReactCrop crop={crop} onChange={(c) => setCrop(c)}>
+			<img src={src} />
+		</ReactCrop>
 	);
 };
 
-export default ExampleComponent;
+export default AreaSelector;

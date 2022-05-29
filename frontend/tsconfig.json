@@ -18,12 +18,8 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx",
-    "noImplicitAny": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false
+    "jsx": "react-jsx"
   },
-  "typeAcquisition": {"enable": true},
   "include": [
     "src"
   ]
