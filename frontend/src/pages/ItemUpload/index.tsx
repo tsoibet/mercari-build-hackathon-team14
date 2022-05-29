@@ -156,8 +156,10 @@ const ItemUpload: React.FC = () => {
 			console.log(imageArray[i])
 			formdata.append("image", imageArray[i]);
 		}
-		navigate("/")
 		await axios.post("http://localhost:9000/items", formdata);
+
+		navigate("/")
+
 		return "done";
 	};
 
