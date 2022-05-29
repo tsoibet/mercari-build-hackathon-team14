@@ -1,28 +1,21 @@
-import React from "react";
-import logo from "./logo.svg";
-import Header from "./components/Header/index";
-import "./App.less";
+import './App.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import ErrorPage from './pages/ErrorPage';
+import ItemUpload from './pages/ItemUpload/index';
+import ItemDetail from './pages/ItemDetailsPage';
 
 function App() {
 	return (
-		<div className="App">
-			<header className="App-header">
-				<Header />
-				<img src={logo} className="App-logo" alt="logo" />
-				<p>
-					Edit2 <code>src/App.tsx</code> and save to reload.
-				</p>
-				<a
-					className="App-link"
-					href="https://reactjs.org"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					Learn React
-				</a>
-			</header>
-		</div>
-	);
+		<Router>
+			<Routes>
+				<Route path='/' element={<HomePage />} />
+				<Route path='*' element={<ErrorPage />} />
+				<Route path='/ItemUpload' element={<ItemUpload />} />
+				<Route path="/items/:itemId" element={<ItemDetail />} />
+			</Routes>
+		</Router>
+	)
 }
 
 export default App;
