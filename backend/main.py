@@ -185,7 +185,7 @@ async def add_item(name: str = Form(..., max_length=32),
                    user_id: int = 1,
                    oneliner_Description: str = Form(..., max_length=200),
                    detailed_description: str = Form(..., max_length=200),
-                   price: str = Form(..., max_length=200)):
+                   price: int = Form(...)):
     logger.info(f"Received add_item request.")
     logger.info(image[0].content_type)
 
