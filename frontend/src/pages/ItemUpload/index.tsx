@@ -28,6 +28,9 @@ import Background2 from "../../assets/Background2.jpg";
 import Background3 from "../../assets/Background3.jpg";
 import Background4 from "../../assets/Background4.jpg";
 import Background5 from "../../assets/Background5.jpg";
+import axios from "axios";
+import { AreaSelector, IArea } from "@bmunozg/react-image-area";
+import ExampleComponent from "./areaSelecctor";
 
 const ItemUpload: React.FC = () => {
 	const [form] = Form.useForm();
@@ -45,6 +48,7 @@ const ItemUpload: React.FC = () => {
 		Background4,
 		Background5,
 	]);
+	const [areas, setAreas] = useState<IArea[]>([]);
 
 	const getBase64 = (file: RcFile): Promise<string> =>
 		new Promise((resolve, reject) => {
@@ -53,6 +57,10 @@ const ItemUpload: React.FC = () => {
 			reader.onload = () => resolve(reader.result as string);
 			reader.onerror = (error) => reject(error);
 		});
+
+	const onAreaChangeHandler = (areas: IArea[]) => {
+		setAreas(areas);
+	};
 
 	const onReset = () => {
 		form.resetFields();
@@ -82,7 +90,6 @@ const ItemUpload: React.FC = () => {
 	);
 
 	const normFile = (e: any) => {
-		console.log("Upload event:", e);
 		if (Array.isArray(e)) {
 			return e;
 		}
@@ -90,7 +97,6 @@ const ItemUpload: React.FC = () => {
 	};
 
 	const con = (e: any) => {
-		console.log("Uploaded");
 		return e?.fileList;
 	};
 
@@ -114,17 +120,34 @@ const ItemUpload: React.FC = () => {
 		setColor(color.hex);
 	};
 
+	const onFinish = async (values: any) => {
+		let imageArray: any[] = [];
+		values.media.foreach((media: any, i: Number) =>
+			imageArray.push(media.originFileObj)
+		);
+		var formdata = new FormData();
+		formdata.append("name", values.name);
+		formdata.append("category", values.category);
+		/* @ts-ignore */
+		formdata.append("image", imageArray);
+
+		await axios.post("http://localhost:9000/items", formdata);
+		return "done";
+	};
+
 	return (
 		<div className="ItemUpload">
+			{/* <ExampleComponent /> */}
 			<Header />
 			<div className="ItemUpload__container">
 				<div className="ItemUpload__container__nav">
 					<ArrowLeftOutlined style={{ marginRight: "10px" }} />
 					Back to Listing Option Page
 				</div>
+
 				<p className="ItemUpload__container__title">Item Details</p>
 				<div className="ItemUpload__container__form">
-					<Form layout={"vertical"} form={form}>
+					<Form layout={"vertical"} form={form} onFinish={onFinish}>
 						<Form.Item
 							name="name"
 							label="Item Name"
@@ -178,6 +201,7 @@ const ItemUpload: React.FC = () => {
 								placeholder="Write something about the current quality of your item, delivery methods, etc."
 							/>
 						</Form.Item>
+
 						<Form.Item
 							name="media"
 							label="Upload an Image/Video here to show your item! (Max. 5)"
@@ -240,7 +264,6 @@ const ItemUpload: React.FC = () => {
 														key={i}
 														className="ItemUpload__container__form__uploadModal__bgImage"
 														src={bg}
-														onClick={() => console.log(i)}
 													></img>
 												);
 											})}
@@ -253,6 +276,7 @@ const ItemUpload: React.FC = () => {
 						</Modal>
 						<Form.Item>
 							<Button
+								htmlType="submit"
 								type="primary"
 								className="ItemUpload__container__form__submitButton"
 							>
