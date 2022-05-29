@@ -28,6 +28,9 @@ import Background2 from "../../assets/Background2.jpg";
 import Background3 from "../../assets/Background3.jpg";
 import Background4 from "../../assets/Background4.jpg";
 import Background5 from "../../assets/Background5.jpg";
+import axios from "axios";
+import { AreaSelector, IArea } from "@bmunozg/react-image-area";
+import ExampleComponent from "./areaSelecctor";
 
 const ItemUpload: React.FC = () => {
 	const [form] = Form.useForm();
@@ -45,6 +48,7 @@ const ItemUpload: React.FC = () => {
 		Background4,
 		Background5,
 	]);
+	// const [areas, setAreas] = useState<IArea[]>([]);
 
 	const getBase64 = (file: RcFile): Promise<string> =>
 		new Promise((resolve, reject) => {
@@ -53,6 +57,11 @@ const ItemUpload: React.FC = () => {
 			reader.onload = () => resolve(reader.result as string);
 			reader.onerror = (error) => reject(error);
 		});
+
+	const onAreaChangeHandler = (areas: IArea[]) => {
+		// setAreas(areas);
+		console.log(areas);
+	};
 
 	const onReset = () => {
 		form.resetFields();
@@ -114,17 +123,40 @@ const ItemUpload: React.FC = () => {
 		setColor(color.hex);
 	};
 
+	const onFinish = async (values: any) => {
+		console.log(values);
+		const imageArray = [];
+		const imageBase64 = await getBase64(
+			values.media[0].originFileObj as RcFile
+		);
+		imageArray.push(imageBase64);
+		console.log(imageArray);
+		console.log(values.name);
+		console.log(values.category);
+		console.log(values.media[0].originFileObj);
+		const body = {
+			name: values.name,
+			category: values.category,
+			image: values.media[0].originFileObj,
+		};
+		console.log(body);
+		await axios.post("http://localhost:9000/items", body);
+		return "done";
+	};
+
 	return (
 		<div className="ItemUpload">
+			{/* <ExampleComponent /> */}
 			<Header />
 			<div className="ItemUpload__container">
 				<div className="ItemUpload__container__nav">
 					<ArrowLeftOutlined style={{ marginRight: "10px" }} />
 					Back to Listing Option Page
 				</div>
+
 				<p className="ItemUpload__container__title">Item Details</p>
 				<div className="ItemUpload__container__form">
-					<Form layout={"vertical"} form={form}>
+					<Form layout={"vertical"} form={form} onFinish={onFinish}>
 						<Form.Item
 							name="name"
 							label="Item Name"
@@ -178,6 +210,7 @@ const ItemUpload: React.FC = () => {
 								placeholder="Write something about the current quality of your item, delivery methods, etc."
 							/>
 						</Form.Item>
+
 						<Form.Item
 							name="media"
 							label="Upload an Image/Video here to show your item! (Max. 5)"
@@ -253,6 +286,7 @@ const ItemUpload: React.FC = () => {
 						</Modal>
 						<Form.Item>
 							<Button
+								htmlType="submit"
 								type="primary"
 								className="ItemUpload__container__form__submitButton"
 							>
