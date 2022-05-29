@@ -29,8 +29,15 @@ import Background3 from "../../assets/Background3.jpg";
 import Background4 from "../../assets/Background4.jpg";
 import Background5 from "../../assets/Background5.jpg";
 import axios from "axios";
-import { AreaSelector, IArea } from "@bmunozg/react-image-area";
-import ExampleComponent from "./areaSelecctor";
+import { Link, useNavigate } from "react-router-dom";
+import ReactCrop, {
+	centerCrop,
+	makeAspectCrop,
+	Crop,
+	PixelCrop,
+} from "react-image-crop";
+import AreaSelector from "./areaSelecctor";
+import "react-image-crop/dist/ReactCrop.css";
 
 const ItemUpload: React.FC = () => {
 	const [form] = Form.useForm();
@@ -41,14 +48,15 @@ const ItemUpload: React.FC = () => {
 	const [fileList, setFileList] = useState<UploadFile[]>([]);
 	const [color, setColor] = useState("");
 	const [selectedCrop, setSelectedCrop] = useState(false);
-	const [bgArray, setBgArray] = useState([
+	const [crop, setCrop] = useState<Crop>();
+	console.log(crop);
+	const bgArray = [
 		Background1,
 		Background2,
 		Background3,
 		Background4,
 		Background5,
-	]);
-	const [areas, setAreas] = useState<IArea[]>([]);
+	];
 
 	const getBase64 = (file: RcFile): Promise<string> =>
 		new Promise((resolve, reject) => {
@@ -57,10 +65,6 @@ const ItemUpload: React.FC = () => {
 			reader.onload = () => resolve(reader.result as string);
 			reader.onerror = (error) => reject(error);
 		});
-
-	const onAreaChangeHandler = (areas: IArea[]) => {
-		setAreas(areas);
-	};
 
 	const onReset = () => {
 		form.resetFields();
@@ -120,15 +124,33 @@ const ItemUpload: React.FC = () => {
 		setColor(color.hex);
 	};
 
-	const onFinish = async (values: any) => {
+	const processMedia = async (media: any[]) => {
+		console.log(media);
 		let imageArray: any[] = [];
-		values.media.foreach((media: any, i: Number) =>
-			imageArray.push(media.originFileObj)
-		);
+		media.map(async (media: any, i: Number) => {
+			const currentBase64 = await getBase64(media.originFileObj as RcFile);
+			console.log(currentBase64);
+			imageArray.push(currentBase64);
+		});
+		console.log(imageArray);
+		return imageArray;
+	};
+
+	const onFinish = async (values: any) => {
+		let imageArray: File[] = [];
+		console.log(fileList);
+		// imageArray = await processMedia(values.media);
+		values.media.map(async (media: any, i: Number) => {
+			imageArray.push(media.originFileObj as File);
+		});
+		console.log(imageArray);
 		var formdata = new FormData();
 		formdata.append("name", values.name);
 		formdata.append("category", values.category);
-		/* @ts-ignore */
+		formdata.append("oneliner_Description", values.oneliner);
+		formdata.append("detailed_description", values.description);
+		formdata.append("price", values.price);
+		// @ts-ignore
 		formdata.append("image", imageArray);
 
 		await axios.post("http://localhost:9000/items", formdata);
@@ -137,13 +159,14 @@ const ItemUpload: React.FC = () => {
 
 	return (
 		<div className="ItemUpload">
-			{/* <ExampleComponent /> */}
 			<Header />
 			<div className="ItemUpload__container">
-				<div className="ItemUpload__container__nav">
-					<ArrowLeftOutlined style={{ marginRight: "10px" }} />
-					Back to Listing Option Page
-				</div>
+				<Link to={"/ListingOptionPage"}>
+					<div className="ItemUpload__container__nav">
+						<ArrowLeftOutlined style={{ marginRight: "10px" }} />
+						Back to Listing Option Page
+					</div>
+				</Link>
 
 				<p className="ItemUpload__container__title">Item Details</p>
 				<div className="ItemUpload__container__form">
@@ -223,14 +246,50 @@ const ItemUpload: React.FC = () => {
 							onCancel={handleCancel}
 							className="ItemUpload__container__form__uploadModal"
 						>
-							<img
-								alt="example"
-								style={{ width: "200px" }}
-								src={previewImage}
-							/>
+							{selectedCrop ? (
+								<ReactCrop
+									crop={crop}
+									style={{ width: "400px" }}
+									onChange={(c) => setCrop(c)}
+								>
+									<img src={previewImage} />
+								</ReactCrop>
+							) : (
+								<img
+									alt="example"
+									style={{ width: "400px" }}
+									src={previewImage}
+								/>
+							)}
+							{crop ? (
+								<div
+									style={{
+										display: "flex",
+										alignItems: "center",
+										flexDirection: "column",
+										marginTop: "20px",
+									}}
+								>
+									<span style={{ fontSize: "16px", fontWeight: "500" }}>
+										Confirm to remove the background?
+									</span>
+
+									<Button
+										type="primary"
+										className="ItemUpload__container__form__uploadModal__confirmButton"
+									>
+										Yes
+									</Button>
+								</div>
+							) : (
+								""
+							)}
 							<div className="ItemUpload__container__form__uploadModal__buttonGroup">
 								<GatewayOutlined
-									onClick={() => setSelectedCrop(!selectedCrop)}
+									onClick={() => {
+										setSelectedCrop(!selectedCrop);
+										setCrop(undefined);
+									}}
 									style={{ color: selectedCrop ? "black" : "#838383" }}
 									className="ItemUpload__container__form__uploadModal__button"
 								/>
