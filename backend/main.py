@@ -7,6 +7,8 @@ import hashlib
 from fastapi import FastAPI, Form, HTTPException, File, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from typing import Union, List
+from imgProcess import removeBackground, addBackground
 
 DATABASE_PATH = "./db/mercari.sqlite3"
 SCHEMA_PATH = "./db/schema.db"
@@ -341,3 +343,30 @@ def disconnect_database():
         logger.info("Disconnected database.")
     except Exception as e:
         logger.error(f"Failed to disconnect database. Error message: {e}")
+
+@app.post("/edit")
+def edit_image(
+        image_path: str,
+        R: int,
+        G: int,
+        B: int,
+        background_path: Union[str, None] = None,
+        x: int = 0,
+        y: int = 0,
+        w: int = 0,
+        l: int = 0
+):
+    path = image_path.split('/')
+    image_filename = path[-1]
+    logger.info(f"Processing {image_path}")
+    logger.info(f"Processing {image_filename}")
+
+
+    print(f"w:{w}, l:{l}")
+    if w != 0 and l != 0:
+        removeBackground(image_path, image_filename, x, y, w, l)
+
+    color = [R,G,B]
+    res = addBackground(image_path, image_filename, color, background_path)
+    return res
+
