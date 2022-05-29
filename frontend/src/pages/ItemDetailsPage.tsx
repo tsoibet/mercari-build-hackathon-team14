@@ -1,24 +1,19 @@
 import Header from "../components/Header/index";
-import React, { useEffect, useState } from 'react';
-
-// interface Item {
-//     id: number;
-//     name: string;
-//     category: string;
-//     image_filename: string;
-// };
+import React, { useEffect, useState, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 
 const server = process.env.API_URL || 'http://127.0.0.1:9000';
 
 interface Prop {
     reload?: boolean;
     onLoadCompleted?: () => void;
-    item_id: string
+    // item_id: string
 }
 
-export const ItemDetail: React.FC<Prop> = (props) => {
+const ItemDetail: React.FC<Prop> = (props) => {
     const { reload = true, onLoadCompleted } = props;
-    const item_id = props.item_id
+    const { itemId } = useParams()
+    console.log(itemId)
     const [item, setItem] = useState({
         "id": 0,
         "name": "tmp",
@@ -27,8 +22,8 @@ export const ItemDetail: React.FC<Prop> = (props) => {
         "user_id": 0,
         "isImage": true
     })
-    const fetchItem = () => {
-        fetch(server.concat(`/items/${item_id}`),
+    const fetchItem = useCallback(() => {
+        fetch(server.concat(`/items/${itemId}`),
             {
                 method: 'GET',
                 mode: 'cors',
@@ -48,21 +43,20 @@ export const ItemDetail: React.FC<Prop> = (props) => {
             .catch(error => {
                 console.error('GET error:', error)
             })
-    }
+    }, [itemId, onLoadCompleted])
 
     useEffect(() => {
         if (reload) {
             fetchItem();
         }
-    }, [reload]);
+    }, [reload, fetchItem]);
 
-    // <img src={server + "/image/" + item.image_filename} alt="" className='ItemDetailsImg' />
     return (
         <div className='Body'>
             <Header></Header>
             <div key={item.id} className='ItemList'>
                 {item.isImage ?
-                    <img src={server + "/image/" + item.image_filename} alt="" className='ItemDetailsImg' />
+                    <img src={server + "/image/" + item.image_filename} alt="" height="400" className='ItemDetailsImg' />
                     :
                     <div className="ItemImage">
                         <video controls muted height="140">
@@ -78,7 +72,9 @@ export const ItemDetail: React.FC<Prop> = (props) => {
                     <span>Description: {item.category}</span>
                 </p>
             </div>
-        </div>
+        </div >
     )
 };
 
+
+export default ItemDetail
