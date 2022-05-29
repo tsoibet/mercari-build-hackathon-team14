@@ -140,12 +140,12 @@ const ItemUpload: React.FC = () => {
 
 	const onFinish = async (values: any) => {
 		let imageArray: File[] = [];
-		console.log(fileList);
+		// console.log(fileList);
 		// imageArray = await processMedia(values.media);
-		values.media.map(async (media: any, i: Number) => {
+		await values.media.map(async (media: any, i: Number) => {
 			imageArray.push(media.originFileObj as File);
 		});
-		console.log(imageArray);
+		// console.log(imageArray);
 		var formdata = new FormData();
 		formdata.append("name", values.name);
 		formdata.append("category", values.category);

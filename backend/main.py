@@ -232,7 +232,7 @@ async def add_item(name: str = Form(..., max_length=32),
         #         f'''UPDATE files SET file{i}={new_image_name[i-1]} WHERE file1={new_image_names[0]}''')
         if (len(new_image_names) == 1):
             cur.execute(f'''INSERT INTO files(file1) VALUES(?)''',
-                        (new_image_names[0]))
+                        (new_image_names[0], ))
         if (len(new_image_names) == 2):
             cur.execute(f'''INSERT INTO files(file1, file2) VALUES(?, ?)''',
                         (new_image_names[0], new_image_names[1]))
