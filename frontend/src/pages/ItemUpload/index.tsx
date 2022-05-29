@@ -48,7 +48,7 @@ const ItemUpload: React.FC = () => {
 		Background4,
 		Background5,
 	]);
-	// const [areas, setAreas] = useState<IArea[]>([]);
+	const [areas, setAreas] = useState<IArea[]>([]);
 
 	const getBase64 = (file: RcFile): Promise<string> =>
 		new Promise((resolve, reject) => {
@@ -59,8 +59,7 @@ const ItemUpload: React.FC = () => {
 		});
 
 	const onAreaChangeHandler = (areas: IArea[]) => {
-		// setAreas(areas);
-		console.log(areas);
+		setAreas(areas);
 	};
 
 	const onReset = () => {
@@ -91,7 +90,6 @@ const ItemUpload: React.FC = () => {
 	);
 
 	const normFile = (e: any) => {
-		console.log("Upload event:", e);
 		if (Array.isArray(e)) {
 			return e;
 		}
@@ -99,7 +97,6 @@ const ItemUpload: React.FC = () => {
 	};
 
 	const con = (e: any) => {
-		console.log("Uploaded");
 		return e?.fileList;
 	};
 
@@ -124,23 +121,17 @@ const ItemUpload: React.FC = () => {
 	};
 
 	const onFinish = async (values: any) => {
-		console.log(values);
-		const imageArray = [];
-		const imageBase64 = await getBase64(
-			values.media[0].originFileObj as RcFile
+		let imageArray: any[] = [];
+		values.media.foreach((media: any, i: Number) =>
+			imageArray.push(media.originFileObj)
 		);
-		imageArray.push(imageBase64);
-		console.log(imageArray);
-		console.log(values.name);
-		console.log(values.category);
-		console.log(values.media[0].originFileObj);
-		const body = {
-			name: values.name,
-			category: values.category,
-			image: values.media[0].originFileObj,
-		};
-		console.log(body);
-		await axios.post("http://localhost:9000/items", body);
+		var formdata = new FormData();
+		formdata.append("name", values.name);
+		formdata.append("category", values.category);
+		/* @ts-ignore */
+		formdata.append("image", imageArray);
+
+		await axios.post("http://localhost:9000/items", formdata);
 		return "done";
 	};
 
@@ -273,7 +264,6 @@ const ItemUpload: React.FC = () => {
 														key={i}
 														className="ItemUpload__container__form__uploadModal__bgImage"
 														src={bg}
-														onClick={() => console.log(i)}
 													></img>
 												);
 											})}
