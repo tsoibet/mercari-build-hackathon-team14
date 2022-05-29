@@ -67,6 +67,7 @@ const ListingOptionPage: React.FC = () => {
                         Back to Home
                     </div>
                 </Link>
+
                 <p className="ListingOptionPage__container__title">Start listing by...</p>
                 <div className="ListingOptionPage__container__cards">
                     <Card
@@ -113,11 +114,11 @@ const ListingOptionPage: React.FC = () => {
                                         </div>) :
                                     <div>No items here!</div>)
                         }
+
                         <div className="ListingOptionPage__container__cards__pastPurchases__showMore">Show more...</div>
                     </Card>
                 </div>
             </div>
-
         </div>
     );
 };
