@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from "react-router-dom";
 
 interface Item {
@@ -19,7 +19,7 @@ interface Prop {
 export const ItemList: React.FC<Prop> = (props) => {
   const { reload = true, onLoadCompleted } = props;
   const [items, setItems] = useState<Item[]>([])
-  const fetchItems = () => {
+  const fetchItems = useCallback(() => {
     fetch(server.concat('/items'),
       {
         method: 'GET',
@@ -43,13 +43,14 @@ export const ItemList: React.FC<Prop> = (props) => {
       .catch(error => {
         console.error('GET error:', error)
       })
-  }
+  }, [onLoadCompleted])
+
 
   useEffect(() => {
     if (reload) {
       fetchItems();
     }
-  }, [reload]);
+  }, [reload, fetchItems]);
 
   return (
     <div className='ItemListGrid'>

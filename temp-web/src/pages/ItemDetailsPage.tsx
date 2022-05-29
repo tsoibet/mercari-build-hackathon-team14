@@ -1,5 +1,5 @@
 import Header from "../components/Header/index";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 
 const server = process.env.API_URL || 'http://127.0.0.1:9000';
@@ -22,7 +22,7 @@ const ItemDetail: React.FC<Prop> = (props) => {
         "user_id": 0,
         "isImage": true
     })
-    const fetchItem = () => {
+    const fetchItem = useCallback(() => {
         fetch(server.concat(`/items/${itemId}`),
             {
                 method: 'GET',
@@ -43,13 +43,13 @@ const ItemDetail: React.FC<Prop> = (props) => {
             .catch(error => {
                 console.error('GET error:', error)
             })
-    }
+    }, [itemId, onLoadCompleted])
 
     useEffect(() => {
         if (reload) {
             fetchItem();
         }
-    }, [reload]);
+    }, [reload, fetchItem]);
 
     // <img src={server + "/image/" + item.image_filename} alt="" className='ItemDetailsImg' />
     return (
