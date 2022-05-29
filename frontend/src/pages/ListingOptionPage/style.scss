@@ -62,8 +62,10 @@
 
                     &__picture{
                         min-width: 60px;
-                        background-color: #AB2718;
-                        
+                        // background-color: #AB2718;
+                        background-size: contain;
+                        background-repeat: no-repeat;
+                        background-position: center;
                     }
 
                     &__details{
