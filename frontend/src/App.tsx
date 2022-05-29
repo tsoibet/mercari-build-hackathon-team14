@@ -1,6 +1,6 @@
 import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import HomePage from './pages/HomePage';
+import HomePage from './pages/Homepage/index';
 import ErrorPage from './pages/ErrorPage';
 import ItemUpload from './pages/ItemUpload/index';
 import ItemDetail from './pages/ItemDetailsPage';

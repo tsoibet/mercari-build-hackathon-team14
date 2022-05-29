@@ -1,6 +1,9 @@
 import { useState } from 'react';
-import { ItemList } from '../components/ItemList';
-import Header from '../components/Header';
+import { ItemList } from '../../components/ItemList';
+import Header from '../../components/Header';
+import "./style.scss";
+
+
 
 function HomePage() {
     const [reload, setReload] = useState(true);
