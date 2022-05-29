@@ -68,20 +68,20 @@ def add_sample_data():
             logger.debug("Data exists. No need to add sample user.")
 
         # Add sample categories and items
-        cur.execute('''SELECT id FROM category''')
-        category_result = cur.fetchone()
-        if (category_result is None):
-            SAMPLE_CATEGORY_LIST = [("Toy", ), ("Fruit", ), ("Dog Fashion", )]
-            SAMPLE_ITEM_LIST = [("Broken toy", 1, "sample1.jpg", 1), ("Miyazaki mango", 2, "sample2.jpg", 1), (
-                "New year costume for dog", 3, "sample3.jpg", 1), ("Dog hat", 3, "sample4.jpg", 1)]
-            cur.executemany(
-                '''INSERT INTO category(name) VALUES (?)''', SAMPLE_CATEGORY_LIST)
-            cur.executemany(
-                '''INSERT INTO items(name, category_id, image_filename, user_id) VALUES (?, ?, ?, ?)''', SAMPLE_ITEM_LIST)
-            conn.commit()
-            logger.debug("Added sample items.")
-        else:
-            logger.debug("Data exists. No need to add sample items.")
+        # cur.execute('''SELECT id FROM category''')
+        # category_result = cur.fetchone()
+        # if (category_result is None):
+        #     SAMPLE_CATEGORY_LIST = [("Toy", ), ("Fruit", ), ("Dog Fashion", )]
+        #     SAMPLE_ITEM_LIST = [("Broken toy", 1, "sample1.jpg", 1), ("Miyazaki mango", 2, "sample2.jpg", 1), (
+        #         "New year costume for dog", 3, "sample3.jpg", 1), ("Dog hat", 3, "sample4.jpg", 1)]
+        #     cur.executemany(
+        #         '''INSERT INTO category(name) VALUES (?)''', SAMPLE_CATEGORY_LIST)
+        #     cur.executemany(
+        #         '''INSERT INTO items(name, category_id, image_filename, user_id) VALUES (?, ?, ?, ?)''', SAMPLE_ITEM_LIST)
+        #     conn.commit()
+        #     logger.debug("Added sample items.")
+        # else:
+        #     logger.debug("Data exists. No need to add sample items.")
 
         # Add sample source and external purchase history
         cur.execute('''SELECT id FROM source''')
@@ -225,6 +225,26 @@ async def add_item(name: str = Form(..., max_length=32),
         cur.execute('''INSERT INTO items(name, category_id, image_filename, user_id, oneliner_Description, detailed_description, price) VALUES (?, ?, ?, ?, ?, ?, ?)''',
                     (name, category_result[0], new_image_names[0], user_id, oneliner_Description, detailed_description, price))
 
+        # cur.execute(f'''INSERT INTO files(file1) VALUES(?)''',
+        #             (new_image_names[0]))
+        # for i in range(2, len(new_image_names)+1):
+        #     cur.execute(
+        #         f'''UPDATE files SET file{i}={new_image_name[i-1]} WHERE file1={new_image_names[0]}''')
+        if (len(new_image_names) == 1):
+            cur.execute(f'''INSERT INTO files(file1) VALUES(?)''',
+                        (new_image_names[0]))
+        if (len(new_image_names) == 2):
+            cur.execute(f'''INSERT INTO files(file1, file2) VALUES(?, ?)''',
+                        (new_image_names[0], new_image_names[1]))
+        if (len(new_image_names) == 3):
+            cur.execute(f'''INSERT INTO files(file1, file2, file3) VALUES(?, ?, ?)''',
+                        (new_image_names[0], new_image_names[1], new_image_names[2]))
+        if (len(new_image_names) == 4):
+            cur.execute(f'''INSERT INTO files(file1, file2, file3, file4) VALUES(?, ?, ?, ?)''',
+                        (new_image_names[0], new_image_names[1], new_image_names[2], new_image_names[3]))
+        if (len(new_image_names) == 5):
+            cur.execute(f'''INSERT INTO files(file1, file2, file3, file4, file5) VALUES(?, ?, ?, ?, ?)''',
+                        (new_image_names[0], new_image_names[1], new_image_names[2], new_image_names[3], new_image_names[4]))
         conn.commit()
 
         logger.info(
@@ -244,8 +264,8 @@ def search_item(keyword: str):
         cur.execute('''
             SELECT items.id, items.name, category.name as category, items.image_filename, items.user_id
             FROM items INNER JOIN category
-            ON category.id = items.category_id
-            WHERE items.name LIKE (?)
+            ON category.id=items.category_id
+            WHERE items.name LIKE(?)
         ''', (f"%{keyword}%", ))
         items = cur.fetchall()
         item_list = [dict(item) for item in items]
@@ -279,7 +299,7 @@ def user_login(username: str = Form(...), password: str = Form(...)):
     try:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
-        cur.execute('''SELECT id FROM user WHERE username = (?) AND hashed_password = (?)''',
+        cur.execute('''SELECT id FROM user WHERE username=(?) AND hashed_password=(?)''',
                     (username, hashlib.sha256(password.encode()).hexdigest()))
         login_result = cur.fetchone()
         if (login_result is None):
@@ -297,7 +317,7 @@ def get_user_external_history(user_id: int):
     try:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
-        cur.execute('''SELECT * FROM user WHERE id = (?)''', (user_id, ))
+        cur.execute('''SELECT * FROM user WHERE id=(?)''', (user_id, ))
         user_result = cur.fetchone()
         if (user_result is None):
             raise HTTPException(status_code=404, detail="User not found")
@@ -310,9 +330,9 @@ def get_user_external_history(user_id: int):
             FROM
             external_purchase_history INNER JOIN source
             ON
-            external_purchase_history.source_id = source.id
+            external_purchase_history.source_id=source.id
             WHERE
-            external_purchase_history.user_id = (?)
+            external_purchase_history.user_id=(?)
             LIMIT 5
         ''', (user_id, ))
         items = cur.fetchall()
@@ -344,9 +364,9 @@ def get_external_history(history_id: int):
             FROM
             external_purchase_history INNER JOIN source
             ON
-            external_purchase_history.source_id = source.id
+            external_purchase_history.source_id=source.id
             WHERE
-            external_purchase_history.id = (?)
+            external_purchase_history.id=(?)
         ''', (history_id, ))
         item_result = cur.fetchone()
         if (item_result is None):

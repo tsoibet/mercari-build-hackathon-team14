@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS source (
 );
 
 CREATE TABLE IF NOT EXISTS files(
-    id INTEGER,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     file1 TEXT,
     file2 TEXT,
     file3 TEXT,
