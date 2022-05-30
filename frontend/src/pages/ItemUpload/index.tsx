@@ -140,7 +140,7 @@ const ItemUpload: React.FC = () => {
 						R: 0,
 						G: 0,
 						B: 0,
-						background_id: bgId + 1,
+						background_id: bgId,
 						x: 0,
 						y: 0,
 						w: 0,
@@ -498,7 +498,7 @@ const ItemUpload: React.FC = () => {
 													<img
 														key={i}
 														onClick={() => {
-															cropWithBg(i);
+															cropWithBg(i + 1);
 														}}
 														className="ItemUpload__container__form__uploadModal__bgImage"
 														src={bg}
