@@ -14,6 +14,7 @@ DATABASE_PATH = "./db/mercari.sqlite3"
 SCHEMA_PATH = "./db/schema.db"
 ERR_MSG = "ERROR"
 image_dir = pathlib.Path(__file__).parent.resolve() / "db" / "image"
+mask_dir = pathlib.Path(__file__).parent.resolve() / "db" / "mask"
 
 logger = logging.getLogger("uvicorn")
 logger.setLevel(os.environ.get('LOGLEVEL', 'DEBUG').upper())
@@ -397,7 +398,6 @@ def edit_image(
         R: int,
         G: int,
         B: int,
-        image_filename: str,
         image: str = Body(...),
         background_id: int = 0,
         x: int = 0,
@@ -405,6 +405,9 @@ def edit_image(
         w: int = 0,
         l: int = 0
 ):
+
+    image_filename = hashlib.sha256(image.encode("utf-8")).hexdigest() + '.jpg'
+
     logger.info(f"Processing {image_filename}")
     logger.info(f"w:{w}, l:{l}")
 
@@ -414,3 +417,13 @@ def edit_image(
     color = [R,G,B]
     res = addBackground(image, image_filename, color, background_id)
     return res
+
+@app.delete("/edit")
+def delete_edited_image(image_filename: str):
+
+    mask_img = "./db/mask/mask_" + image_filename
+    if os.path.exists(mask_img):
+        os.remove(mask_img)
+        return {f"Remove {mask_img}"}
+
+    return {f"{mask_img} does not exist"}
