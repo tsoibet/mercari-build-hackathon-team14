@@ -20,18 +20,24 @@ def base64_img(imgbase64):
     img = cv2.imdecode(nparr, cv2.COLOR_BGR2RGB)
     return img
 
+def img_resize(img):
+    height, width = img.shape[:2] # get height and width of img
+    img = cv2.resize(img, (400, round(height*400/width))) 
+    return img
+
 def removeBackground(imgbase64, img_filename, x, y, w, l):
 
     rect = (x, y, w, l)
     rect_or_mask = 0      # flag of selecting rect or mask mode
     
     img = base64_img(imgbase64)
+    img = img_resize(img)
     mask = np.zeros(img.shape[:2], dtype = np.uint8) # mask initialization
     result = img.copy()         # result image
     result_mask = mask.copy()   # result mask
 
     try:
-        for i in range(5):
+        for i in range(10):
             bgdmodel = np.zeros((1, 65), np.float64)
             fgdmodel = np.zeros((1, 65), np.float64)
             if (rect_or_mask == 0):         # grabcut with rect
@@ -62,8 +68,8 @@ def addBackground(imgbase64, img_filename, color, background_id):
             img_m = cv2.imread('{MASKPATH}/mask_default.jpg')
 
         # resize image and img_m
+        img = img_resize(img)
         height, width = img.shape[:2] # get height and width of img
-        img = cv2.resize(img, (width, height))
         img_m = cv2.resize(img_m, (width, height))
         result = img.copy()
 
@@ -75,7 +81,7 @@ def addBackground(imgbase64, img_filename, color, background_id):
         bg_mask = cv2.dilate(bg_mask, kernel, iterations = 1)
         img_mask = ~bg_mask
 
-        if background_id is 0 or not os.path.exists(f'{BGPATH}/bg{background_id}.jpg'):
+        if background_id == 0 or not os.path.exists(f'{BGPATH}/bg{background_id}.jpg'):
             print("Background does not exist")
             for r in range(height):
                 for c in range(width):
