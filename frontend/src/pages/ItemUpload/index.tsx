@@ -46,7 +46,7 @@ interface Category {
   name: string;
 }
 
-const ItemUpload: React.FC = () => {
+const ItemUpload:React.FC = () => {
   const [form] = Form.useForm();
   const { Option } = Select;
   const [previewVisible, setPreviewVisible] = useState(false);
@@ -149,24 +149,7 @@ const ItemUpload: React.FC = () => {
     return imageArray;
   };
 
-  const onFinish = async (values: any) => {
-    let imageArray: File[] = [];
-    await values.media.map(async (media: any, i: Number) => {
-      imageArray.push(media.originFileObj as File);
-    });
-    var formdata = new FormData();
-    formdata.append("name", values.name);
-    formdata.append("category", values.category);
-    formdata.append("oneliner_Description", values.oneliner);
-    formdata.append("detailed_description", values.description);
-    formdata.append("price", values.price);
-    for (let i = 0; i < imageArray.length; i++) {
-      console.log(imageArray[i]);
-      formdata.append("image", imageArray[i]);
-    }
-    const res = await axios.post("http://localhost:9000/items", formdata);
-
-    navigate("/");
+  
 
 	const onFinish = async (values: any) => {
 		let imageArray: File[] = [];
@@ -185,6 +168,7 @@ const ItemUpload: React.FC = () => {
 		}
 		const res = await axios.post("http://localhost:9000/items", formdata);
 
+		navigate("/");
     	return "done";
   	};
 
