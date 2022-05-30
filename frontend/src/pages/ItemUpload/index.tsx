@@ -152,7 +152,7 @@ const ItemUpload: React.FC = () => {
 		var formdata = new FormData();
 		formdata.append("name", values.name);
 		formdata.append("category", values.category);
-		formdata.append("oneliner_Description", values.oneliner);
+		formdata.append("oneliner_description", values.oneliner);
 		formdata.append("detailed_description", values.description);
 		formdata.append("price", values.price);
 		for (let i = 0; i < imageArray.length; i++) {
