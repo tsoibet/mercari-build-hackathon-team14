@@ -431,9 +431,7 @@ const ItemUpload:React.FC = () => {
                             key={i}
                             className="ItemUpload__container__form__uploadModal__bgImage"
                             src={bg}
-                          >
-                            {" "}
-                          </img>
+                          ></img>
                         );
                       })}
                     </div>
