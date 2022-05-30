@@ -334,7 +334,23 @@ def get_external_history(history_id: int):
        return ERR_MSG
 
 
-
+@app.get("/categories")
+def get_categories():
+   logger.info("Received get_categories request.")
+   try:
+       conn.row_factory = sqlite3.Row
+       cur = conn.cursor()
+       cur.execute('''
+           SELECT id, name FROM category
+       ''')
+       categories = cur.fetchall()
+       category_list = [dict(category) for category in categories]
+       categories_json = {"categories": category_list}
+       logger.info("Returning all categories.")
+       return categories_json
+   except Exception as e:
+       logger.warn(f"Failed to get categories. Error message: {e}")
+       return ERR_MSG
 
 
 @ app.on_event("shutdown")
