@@ -4,7 +4,7 @@ import pathlib
 import json
 import sqlite3
 import hashlib
-from fastapi import FastAPI, Form, HTTPException, File, UploadFile
+from fastapi import FastAPI, Form, HTTPException, File, UploadFile, Body
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Union, List
@@ -346,27 +346,24 @@ def disconnect_database():
 
 @app.post("/edit")
 def edit_image(
-        image_path: str,
         R: int,
         G: int,
         B: int,
-        background_path: Union[str, None] = None,
+        image_filename: str,
+        image: str = Body(...),
+        background_id: int = 0,
         x: int = 0,
         y: int = 0,
         w: int = 0,
         l: int = 0
 ):
-    path = image_path.split('/')
-    image_filename = path[-1]
-    logger.info(f"Processing {image_path}")
     logger.info(f"Processing {image_filename}")
+    logger.info(f"w:{w}, l:{l}")
 
-
-    print(f"w:{w}, l:{l}")
     if w != 0 and l != 0:
-        removeBackground(image_path, image_filename, x, y, w, l)
+        removeBackground(image, image_filename, x, y, w, l)
 
     color = [R,G,B]
-    res = addBackground(image_path, image_filename, color, background_path)
+    res = addBackground(image, image_filename, color, background_id)
     return res
 

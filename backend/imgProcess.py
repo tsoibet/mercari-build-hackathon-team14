@@ -10,12 +10,18 @@ def img_base64(img):
     base64_str = base64.b64encode(base64_str)
     return base64_str
 
-def removeBackground(img_path, img_filename, x, y, w, l):
+def base64_img(imgbase64):
+    imgstr = base64.b64decode(imgbase64)
+    nparr = np.fromstring(imgstr, np.uint8)
+    img = cv2.imdecode(nparr, cv2.COLOR_BGR2RGB)
+    return img
+
+def removeBackground(imgbase64, img_filename, x, y, w, l):
 
     rect = (x, y, w, l)
     rect_or_mask = 0      # flag of selecting rect or mask mode
-
-    img = cv2.imread(img_path)
+    
+    img = base64_img(imgbase64)
     mask = np.zeros(img.shape[:2], dtype = np.uint8) # mask initialization
     result = img.copy()         # result image
     result_mask = mask.copy()   # result mask
@@ -40,14 +46,11 @@ def removeBackground(img_path, img_filename, x, y, w, l):
     print(f"Write db/mask/mask_{img_filename}")
 
 
-def addBackground(img_path, img_filename, color, background_path):
+def addBackground(imgbase64, img_filename, color, background_id):
     print(f"Add background to {img_filename}")
 
     try:
-        img = cv2.imread(img_path)
-        if img is None:
-            print(f"Can not read {img_path}")
-            return
+        img = base64_img(imgbase64)
 
         img_m = cv2.imread(f'db/mask/mask_{img_filename}') # mask image
         if img_m is None:
@@ -56,8 +59,6 @@ def addBackground(img_path, img_filename, color, background_path):
 
         # resize image and img_m
         height, width = img.shape[:2] # get height and width of img
-        height = 200
-        width = 200
         img = cv2.resize(img, (width, height))
         img_m = cv2.resize(img_m, (width, height))
         result = img.copy()
@@ -70,15 +71,15 @@ def addBackground(img_path, img_filename, color, background_path):
         bg_mask = cv2.dilate(bg_mask, kernel, iterations = 1)
         img_mask = ~bg_mask
 
-        if background_path is None or not os.path.exists(background_path):
+        if background_id is 0 or not os.path.exists(f'db/backgrounds/bg{background_id}.jpg'):
             print("Background does not exist")
             for r in range(height):
                 for c in range(width):
-                    if bg_mask[r, c] == 255: # if the pixel is white
-                        result[r, c] = (color[2], color[1], color[0]) # (B,G,R)
+                    if bg_mask[r,c] == 255: # if the pixel is white
+                        result[r,c] = (color[2], color[1], color[0]) # (B,G,R)
         else:
             # read background
-            img_bg = cv2.imread(background_path)
+            img_bg = cv2.imread(f'db/backgrounds/bg{background_id}.jpg')
 
             img_bg = cv2.resize(img_bg, (width, height))
 
@@ -90,8 +91,8 @@ def addBackground(img_path, img_filename, color, background_path):
         # for debug
         #cv2.imshow('res', result)
         #cv2.waitKey(0)
+        #print(img_base64(result))
 
-        print(img_base64(result))
         return img_base64(result)
     except NameError:
         print("NameError")
