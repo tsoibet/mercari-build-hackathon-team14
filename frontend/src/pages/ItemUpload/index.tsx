@@ -57,6 +57,8 @@ const ItemUpload: React.FC = () => {
 		Background5,
 	];
 
+	let navigate = useNavigate();
+
 	const getBase64 = (file: RcFile): Promise<string> =>
 		new Promise((resolve, reject) => {
 			const reader = new FileReader();
@@ -140,22 +142,23 @@ const ItemUpload: React.FC = () => {
 
 	const onFinish = async (values: any) => {
 		let imageArray: File[] = [];
-		console.log(fileList);
-		// imageArray = await processMedia(values.media);
 		values.media.map(async (media: any, i: Number) => {
 			imageArray.push(media.originFileObj as File);
 		});
-		console.log(imageArray);
 		var formdata = new FormData();
 		formdata.append("name", values.name);
 		formdata.append("category", values.category);
 		formdata.append("oneliner_Description", values.oneliner);
 		formdata.append("detailed_description", values.description);
 		formdata.append("price", values.price);
-		// @ts-ignore
-		formdata.append("image", imageArray);
+		for (let i = 0; i < imageArray.length; i++) {
+			console.log(imageArray[i]);
+			formdata.append("image", imageArray[i]);
+		}
+		const res = await axios.post("http://localhost:9000/items", formdata);
 
-		await axios.post("http://localhost:9000/items", formdata);
+		navigate("/");
+
 		return "done";
 	};
 
@@ -257,7 +260,10 @@ const ItemUpload: React.FC = () => {
 							getValueFromEvent={normFile}
 							rules={[{ required: true }]}
 						>
-							<Upload {...uploadProps}>
+							<Upload
+								{...uploadProps}
+								// action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+							>
 								{fileList.length >= 5 ? null : uploadButton}
 							</Upload>
 						</Form.Item>
