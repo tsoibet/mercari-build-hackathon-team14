@@ -9,6 +9,7 @@ from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Union, List
 from imgProcess import removeBackground, addBackground
+from addSampleData import add_sample_data
 
 DATABASE_PATH = "./db/mercari.sqlite3"
 SCHEMA_PATH = "./db/schema.db"
@@ -44,66 +45,11 @@ def init_database():
             schema = schema_file.read()
             logger.debug("Read schema file.")
         cur.executescript(f'''{schema}''')
-        add_sample_data()
+        add_sample_data(conn)
         conn.commit()
         logger.info("Completed database initialization.")
     except Exception as e:
         logger.warn(f"Failed to initialize database. Error message: {e}")
-
-
-def add_sample_data():
-    try:
-        cur = conn.cursor()
-
-        # Add sample user
-        cur.execute('''SELECT id FROM user''')
-        if (cur.fetchone() is None):
-            SAMPLE_USER = ("sample_user", hashlib.sha256(
-                b"123456").hexdigest())
-            cur.execute(
-                '''INSERT INTO user(username, hashed_password) VALUES (?, ?)''', SAMPLE_USER)
-            conn.commit()
-            logger.debug("Added sample user.")
-        else:
-            logger.debug("Data exists. No need to add sample user.")
-
-        # Add sample categories and items
-        # cur.execute('''SELECT id FROM category''')
-        # category_result = cur.fetchone()
-        # if (category_result is None):
-        #     SAMPLE_CATEGORY_LIST = [("Toy", ), ("Fruit", ), ("Dog Fashion", )]
-        #     SAMPLE_ITEM_LIST = [("Broken toy", 1, "sample1.jpg", 1), ("Miyazaki mango", 2, "sample2.jpg", 1), (
-        #         "New year costume for dog", 3, "sample3.jpg", 1), ("Dog hat", 3, "sample4.jpg", 1)]
-        #     cur.executemany(
-        #         '''INSERT INTO category(name) VALUES (?)''', SAMPLE_CATEGORY_LIST)
-        #     cur.executemany(
-        #         '''INSERT INTO items(name, category_id, image_filename, user_id) VALUES (?, ?, ?, ?)''', SAMPLE_ITEM_LIST)
-        #     conn.commit()
-        #     logger.debug("Added sample items.")
-        # else:
-        #     logger.debug("Data exists. No need to add sample items.")
-
-        # Add sample source and external purchase history
-        cur.execute('''SELECT id FROM source''')
-        source_result = cur.fetchone()
-        if (source_result is None):
-            SAMPLE_SOURCE = [("Amazon", )]
-            SAMPLE_HISTORY_LIST = [(1, "Fry pan", "history_sample1.jpg", 1), (
-                1, "Tempura pot", "history_sample2.jpg", 1), (1, "Japanese teapot", "history_sample3.jpg", 1)]
-            cur.executemany(
-                '''INSERT INTO source(name) VALUES (?)''', SAMPLE_SOURCE)
-            cur.executemany(
-                '''INSERT INTO external_purchase_history(user_id, name, image_filename, source_id) VALUES (?, ?, ?, ?)''', SAMPLE_HISTORY_LIST)
-            conn.commit()
-            logger.debug("Added sample external purchase history.")
-        else:
-            logger.debug(
-                "Data exists. No need to add sample external purchase history.")
-
-    except Exception as e:
-        logger.warn(f"Failed to add sample data. Error message: {e}")
-        return ERR_MSG
-
 
 @app.get("/")
 def root():
@@ -183,7 +129,7 @@ async def add_item(name: str = Form(..., max_length=32),
                    category: str = Form(..., max_length=12),
                    image: list[UploadFile] = File(...),
                    user_id: int = 1,
-                   oneliner_Description: str = Form(..., max_length=200),
+                   oneliner_description: str = Form(..., max_length=100),
                    detailed_description: str = Form(..., max_length=200),
                    price: int = Form(...)):
     logger.info(f"Received add_item request.")
@@ -222,8 +168,8 @@ async def add_item(name: str = Form(..., max_length=32),
                 '''SELECT id FROM category WHERE name = (?)''', (category, ))
             category_result = cur.fetchone()
 
-        cur.execute('''INSERT INTO items(name, category_id, image_filename, user_id, oneliner_Description, detailed_description, price) VALUES (?, ?, ?, ?, ?, ?, ?)''',
-                    (name, category_result[0], new_image_names[0], user_id, oneliner_Description, detailed_description, price))
+        cur.execute('''INSERT INTO items(name, category_id, image_filename, user_id, oneliner_description, detailed_description, price) VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                    (name, category_result[0], new_image_names[0], user_id, oneliner_description, detailed_description, price))
 
         # cur.execute(f'''INSERT INTO files(file1) VALUES(?)''',
         #             (new_image_names[0]))
@@ -326,7 +272,8 @@ def get_user_external_history(user_id: int):
             external_purchase_history.id as historyId,
             external_purchase_history.name as itemName,
             external_purchase_history.image_filename as imageFilename,
-            source.name as sourceName
+            source.name as sourceName,
+            external_purchase_history.price
             FROM
             external_purchase_history INNER JOIN source
             ON
@@ -352,35 +299,41 @@ def get_user_external_history(user_id: int):
 
 @ app.get("/external-history/{history_id}")
 def get_external_history(history_id: int):
-    logger.info("Received get_external_history request.")
-    try:
-        conn.row_factory = sqlite3.Row
-        cur = conn.cursor()
-        cur.execute('''
-            SELECT
-            external_purchase_history.name as itemName,
-            external_purchase_history.image_filename as imageFilename,
-            source.name as sourceName
-            FROM
-            external_purchase_history INNER JOIN source
-            ON
-            external_purchase_history.source_id=source.id
-            WHERE
-            external_purchase_history.id=(?)
-        ''', (history_id, ))
-        item_result = cur.fetchone()
-        if (item_result is None):
-            raise HTTPException(status_code=404, detail="Item not found")
-        logger.info(
-            f"Returning the external purchased item of id: {history_id}")
-        return item_result
-    except HTTPException:
-        logger.info("Failed to get external purchased item: Item not found")
-        return "Item not found"
-    except Exception as e:
-        logger.warn(
-            f"Failed to get external purchase history. Error message: {e}")
-        return ERR_MSG
+   logger.info("Received get_external_history request.")
+   try:
+       conn.row_factory = sqlite3.Row
+       cur = conn.cursor()
+       cur.execute('''
+           SELECT
+           external_purchase_history.name as itemName,
+           external_purchase_history.image_filename as imageFilename,
+           source.name as sourceName,
+           external_purchase_history.oneliner_description,
+           external_purchase_history.detailed_description,
+           external_purchase_history.price
+           FROM
+           external_purchase_history INNER JOIN source
+           ON
+           external_purchase_history.source_id=source.id
+           WHERE
+           external_purchase_history.id=(?)
+       ''', (history_id, ))
+       item_result = cur.fetchone()
+       if (item_result is None):
+           raise HTTPException(status_code=404, detail="Item not found")
+       logger.info(
+           f"Returning the external purchased item of id: {history_id}")
+       return item_result
+   except HTTPException:
+       logger.info("Failed to get external purchased item: Item not found")
+       return "Item not found"
+   except Exception as e:
+       logger.warn(
+           f"Failed to get external purchase history. Error message: {e}")
+       return ERR_MSG
+
+
+
 
 
 @ app.on_event("shutdown")
