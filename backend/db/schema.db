@@ -4,9 +4,9 @@ CREATE TABLE IF NOT EXISTS items (
     name TEXT,
     category_id INTEGER,
     image_filename TEXT,
-    oneliner_Description TEXT, 
+    oneliner_description TEXT, 
     detailed_description TEXT,
-    price TEXT
+    price INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS category (
@@ -25,7 +25,11 @@ CREATE TABLE IF NOT EXISTS external_purchase_history (
     user_id INTEGER,
     name TEXT,
     image_filename TEXT,
-    source_id INTEGER
+    source_id INTEGER,
+    category_id INTEGER,
+    oneliner_description TEXT, 
+    detailed_description TEXT,
+    price INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS source (
