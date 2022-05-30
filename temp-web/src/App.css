@@ -25,7 +25,7 @@
   padding: 0;
   box-sizing: border-box;
 
-  font-family: Verdana, sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 
@@ -73,7 +73,9 @@ body {
   height: 100%;
 }
 
-input, input:focus, button {
+input,
+input:focus,
+button {
   -webkit-appearance: none;
   appearance: none;
   border-style: none;
@@ -164,6 +166,8 @@ button:active {
   height: clamp(140px, 20vh, 300px);
   background-size: cover;
   background-position: center;
+  display: flex;
+  justify-content: center;
 }
 
 .ItemList .ItemDescriptions {
@@ -178,7 +182,7 @@ button:active {
 .ItemList .ItemDescriptions .ItemName {
   padding: 0 2vw;
   text-align: center;
-  white-space: nowrap; 
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
@@ -189,7 +193,7 @@ button:active {
   background-color: var(--theme-color-background-text);
   border-radius: calc(1vh + 1vw) 0 0 calc(1vh + 1vw);
   padding: calc(0.3vh + 0.3vw) 1vw;
-  padding-left: calc(1vh + 1vw); 
+  padding-left: calc(1vh + 1vw);
   align-self: flex-end;
   overflow-wrap: break-word;
   max-width: 80%;
@@ -204,6 +208,7 @@ button:active {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
