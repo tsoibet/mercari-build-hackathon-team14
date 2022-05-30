@@ -45,7 +45,7 @@ def init_database():
             schema = schema_file.read()
             logger.debug("Read schema file.")
         cur.executescript(f'''{schema}''')
-        add_sample_data()
+        add_sample_data(conn)
         conn.commit()
         logger.info("Completed database initialization.")
     except Exception as e:
@@ -129,7 +129,7 @@ async def add_item(name: str = Form(..., max_length=32),
                    category: str = Form(..., max_length=12),
                    image: list[UploadFile] = File(...),
                    user_id: int = 1,
-                   oneliner_Description: str = Form(..., max_length=200),
+                   oneliner_description: str = Form(..., max_length=100),
                    detailed_description: str = Form(..., max_length=200),
                    price: int = Form(...)):
     logger.info(f"Received add_item request.")
@@ -168,8 +168,8 @@ async def add_item(name: str = Form(..., max_length=32),
                 '''SELECT id FROM category WHERE name = (?)''', (category, ))
             category_result = cur.fetchone()
 
-        cur.execute('''INSERT INTO items(name, category_id, image_filename, user_id, oneliner_Description, detailed_description, price) VALUES (?, ?, ?, ?, ?, ?, ?)''',
-                    (name, category_result[0], new_image_names[0], user_id, oneliner_Description, detailed_description, price))
+        cur.execute('''INSERT INTO items(name, category_id, image_filename, user_id, oneliner_description, detailed_description, price) VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                    (name, category_result[0], new_image_names[0], user_id, oneliner_description, detailed_description, price))
 
         # cur.execute(f'''INSERT INTO files(file1) VALUES(?)''',
         #             (new_image_names[0]))
