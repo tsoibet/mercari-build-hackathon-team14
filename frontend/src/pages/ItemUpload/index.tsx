@@ -39,19 +39,20 @@ import ReactCrop, {
 import AreaSelector from "./areaSelecctor";
 import "react-image-crop/dist/ReactCrop.css";
 
-const server = process.env.API_URL || 'http://127.0.0.1:9000';
+const server = process.env.API_URL || "http://127.0.0.1:9000";
 
 const ItemUpload: React.FC = () => {
 	const [form] = Form.useForm();
 	const { Option } = Select;
 	const [previewVisible, setPreviewVisible] = useState(false);
 	const [previewImage, setPreviewImage] = useState("");
+	console.log(previewImage);
 	const [previewTitle, setPreviewTitle] = useState("");
+	const [searchParams, setSearchParams] = useSearchParams();
 	const [fileList, setFileList] = useState<UploadFile[]>([]);
 	const [color, setColor] = useState("");
 	const [selectedCrop, setSelectedCrop] = useState(false);
 	const [crop, setCrop] = useState<Crop>();
-	console.log(crop);
 	const bgArray = [
 		Background1,
 		Background2,
@@ -74,7 +75,10 @@ const ItemUpload: React.FC = () => {
 		form.resetFields();
 	};
 
-	const handleCancel = () => setPreviewVisible(false);
+	const handleCancel = () => {
+		setPreviewVisible(false);
+		setCrop(undefined);
+	};
 
 	const handlePreview = async (file: UploadFile) => {
 		if (!file.url && !file.preview) {
@@ -142,12 +146,9 @@ const ItemUpload: React.FC = () => {
 
 	const onFinish = async (values: any) => {
 		let imageArray: File[] = [];
-		// console.log(fileList);
-		// imageArray = await processMedia(values.media);
 		await values.media.map(async (media: any, i: Number) => {
 			imageArray.push(media.originFileObj as File);
 		});
-		// console.log(imageArray);
 		var formdata = new FormData();
 		formdata.append("name", values.name);
 		formdata.append("category", values.category);
@@ -155,45 +156,62 @@ const ItemUpload: React.FC = () => {
 		formdata.append("detailed_description", values.description);
 		formdata.append("price", values.price);
 		for (let i = 0; i < imageArray.length; i++) {
-			console.log(imageArray[i])
+			console.log(imageArray[i]);
 			formdata.append("image", imageArray[i]);
 		}
-		await axios.post("http://localhost:9000/items", formdata);
+		const res = await axios.post("http://localhost:9000/items", formdata);
 
-		navigate("/")
+		navigate("/");
 
 		return "done";
 	};
 
-	const [searchParams, setSearchParams] = useSearchParams();
-
-	const fetchPurchasedItem = (purchasedItemId:string) => {
-		fetch(server.concat(`/external-history/${purchasedItemId}`),
-			{
-				method: 'GET',
-				mode: 'cors',
-				headers: {
-					'Content-Type': 'application/json',
-					'Accept': 'application/json'
+	const confirmCrop = async () => {
+		if (crop) {
+			const res = await axios.post("http://localhost:9000/edit", previewImage.split(",")[1], {
+				params: {
+					R: 0,
+					G: 0,
+					B: 0,
+					background_id: 0,
+					x: Math.ceil(Number(crop.x)),
+					y: Math.ceil(Number(crop.y)),
+					w: Math.floor(Number(crop.width)),
+					l: Math.floor(Number(crop.height)),
 				},
-			})
-			.then(response => response.json())
-			.then(data => {
-				console.log('GET success:', data);
+				headers: {
+					"Access-Control-Allow-Origin": "http://localhost:3000",
+				},
+			});
+			console.log(res);
+		}
+	};
+
+	const fetchPurchasedItem = (purchasedItemId: string) => {
+		fetch(server.concat(`/external-history/${purchasedItemId}`), {
+			method: "GET",
+			mode: "cors",
+			headers: {
+				"Content-Type": "application/json",
+				Accept: "application/json",
+			},
+		})
+			.then((response) => response.json())
+			.then((data) => {
+				console.log("GET success:", data);
 				form.setFieldsValue({ name: data.itemName });
 			})
-			.catch(error => {
-				console.error('GET error:', error)
-			})
+			.catch((error) => {
+				console.error("GET error:", error);
+			});
 	};
- 
+
 	useEffect(() => {
-		const purchasedItemId = searchParams.get('purchasedItemId');
-		if (purchasedItemId != null){
+		const purchasedItemId = searchParams.get("purchasedItemId");
+		if (purchasedItemId != null) {
 			fetchPurchasedItem(purchasedItemId);
 		}
 	});
- 
 
 	return (
 		<div className="ItemUpload">
@@ -272,7 +290,7 @@ const ItemUpload: React.FC = () => {
 						>
 							<Upload
 								{...uploadProps}
-							// action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+								// action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
 							>
 								{fileList.length >= 5 ? null : uploadButton}
 							</Upload>
@@ -315,6 +333,7 @@ const ItemUpload: React.FC = () => {
 									<Button
 										type="primary"
 										className="ItemUpload__container__form__uploadModal__confirmButton"
+										onClick={confirmCrop}
 									>
 										Yes
 									</Button>
