@@ -398,7 +398,6 @@ def edit_image(
         R: int,
         G: int,
         B: int,
-        image_filename: str,
         image: str = Body(...),
         background_id: int = 0,
         x: int = 0,
@@ -406,6 +405,9 @@ def edit_image(
         w: int = 0,
         l: int = 0
 ):
+
+    image_filename = hashlib.sha256(image.encode("utf-8")).hexdigest() + '.jpg'
+
     logger.info(f"Processing {image_filename}")
     logger.info(f"w:{w}, l:{l}")
 
