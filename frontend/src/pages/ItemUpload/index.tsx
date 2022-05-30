@@ -168,17 +168,16 @@ const ItemUpload: React.FC = () => {
 
 	const confirmCrop = async () => {
 		if (crop) {
-			const res = await axios.post("http://localhost:9000/edit", "", {
+			const res = await axios.post("http://localhost:9000/edit", previewImage.split(",")[1], {
 				params: {
-					image_filename: previewImage,
 					R: 0,
 					G: 0,
 					B: 0,
 					background_id: 0,
-					x: Number(crop.x),
-					y: Number(crop.y),
-					w: Number(crop.width),
-					l: Number(crop.height),
+					x: Math.ceil(Number(crop.x)),
+					y: Math.ceil(Number(crop.y)),
+					w: Math.floor(Number(crop.width)),
+					l: Math.floor(Number(crop.height)),
 				},
 				headers: {
 					"Access-Control-Allow-Origin": "http://localhost:3000",
