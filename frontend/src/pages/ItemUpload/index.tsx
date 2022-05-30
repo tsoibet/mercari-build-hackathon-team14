@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../../components/Header/index";
 import "./style.scss";
 import {
@@ -29,7 +29,7 @@ import Background3 from "../../assets/Background3.jpg";
 import Background4 from "../../assets/Background4.jpg";
 import Background5 from "../../assets/Background5.jpg";
 import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import ReactCrop, {
 	centerCrop,
 	makeAspectCrop,
@@ -38,6 +38,8 @@ import ReactCrop, {
 } from "react-image-crop";
 import AreaSelector from "./areaSelecctor";
 import "react-image-crop/dist/ReactCrop.css";
+
+const server = process.env.API_URL || 'http://127.0.0.1:9000';
 
 const ItemUpload: React.FC = () => {
 	const [form] = Form.useForm();
@@ -162,6 +164,36 @@ const ItemUpload: React.FC = () => {
 
 		return "done";
 	};
+
+	const [searchParams, setSearchParams] = useSearchParams();
+
+	const fetchPurchasedItem = (purchasedItemId:string) => {
+		fetch(server.concat(`/external-history/${purchasedItemId}`),
+			{
+				method: 'GET',
+				mode: 'cors',
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json'
+				},
+			})
+			.then(response => response.json())
+			.then(data => {
+				console.log('GET success:', data);
+				form.setFieldsValue({ name: data.itemName });
+			})
+			.catch(error => {
+				console.error('GET error:', error)
+			})
+	};
+ 
+	useEffect(() => {
+		const purchasedItemId = searchParams.get('purchasedItemId');
+		if (purchasedItemId != null){
+			fetchPurchasedItem(purchasedItemId);
+		}
+	});
+ 
 
 	return (
 		<div className="ItemUpload">
