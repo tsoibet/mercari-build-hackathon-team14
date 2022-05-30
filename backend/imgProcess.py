@@ -5,6 +5,10 @@ import numpy as np
 from pathlib import Path
 from typing import Union, List
 
+
+MASKPATH = "./db/mask"
+BGPATH = "./db/backgrounds"
+
 def img_base64(img):
     base64_str = cv2.imencode('.jpg', img)[1].tostring()
     base64_str = base64.b64encode(base64_str)
@@ -42,8 +46,8 @@ def removeBackground(imgbase64, img_filename, x, y, w, l):
         import traceback
         traceback.print_exc()
 
-    cv2.imwrite(f'db/mask/mask_{img_filename}',result_mask)
-    print(f"Write db/mask/mask_{img_filename}")
+    cv2.imwrite(f'{MASKPATH}/mask_{img_filename}',result_mask)
+    print(f"Write {MASKPATH}/mask_{img_filename}")
 
 
 def addBackground(imgbase64, img_filename, color, background_id):
@@ -52,10 +56,10 @@ def addBackground(imgbase64, img_filename, color, background_id):
     try:
         img = base64_img(imgbase64)
 
-        img_m = cv2.imread(f'db/mask/mask_{img_filename}') # mask image
+        img_m = cv2.imread(f'{MASKPATH}/mask_{img_filename}') # mask image
         if img_m is None:
-            print(f"Can not read db/mask/mask_{img_filename}")
-            img_m = cv2.imread('db/mask/mask_default.jpg')
+            print(f"Can not read {MASKPATH}/mask_{img_filename}")
+            img_m = cv2.imread('{MASKPATH}/mask_default.jpg')
 
         # resize image and img_m
         height, width = img.shape[:2] # get height and width of img
@@ -71,7 +75,7 @@ def addBackground(imgbase64, img_filename, color, background_id):
         bg_mask = cv2.dilate(bg_mask, kernel, iterations = 1)
         img_mask = ~bg_mask
 
-        if background_id is 0 or not os.path.exists(f'db/backgrounds/bg{background_id}.jpg'):
+        if background_id is 0 or not os.path.exists(f'{BGPATH}/bg{background_id}.jpg'):
             print("Background does not exist")
             for r in range(height):
                 for c in range(width):
@@ -79,7 +83,7 @@ def addBackground(imgbase64, img_filename, color, background_id):
                         result[r,c] = (color[2], color[1], color[0]) # (B,G,R)
         else:
             # read background
-            img_bg = cv2.imread(f'db/backgrounds/bg{background_id}.jpg')
+            img_bg = cv2.imread(f'{BGPATH}/bg{background_id}.jpg')
 
             img_bg = cv2.resize(img_bg, (width, height))
 
