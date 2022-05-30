@@ -120,7 +120,6 @@ def get_item_image(item_id: int):
             WHERE items.id = (?)
         ''', (item_id, ))
         num = cur.fetchone()["num_files"]
-        item_id -= 13
         result = {}
         if(num == 1):
             result = cur.execute('''SELECT quantity, file1
@@ -184,17 +183,6 @@ async def add_item(name: str = Form(..., max_length=32),
     logger.info(f"Received add_item request.")
     logger.info(image[0].content_type)
 
-    # for file in image:
-    #     if file.content_type == "image/jpeg":
-    #         file_extension = ".jpg"
-    #     elif file.content_type == "video/mp4":
-    #         file_extension = ".mp4"
-    #     elif file.content_type == "video/quicktime":
-    #         file_extension = ".mp4"
-    #     else:
-    #         raise HTTPException(
-    #             400, detail="Image not in jpg format or video not in mp4 format.")
-
     try:
         cur = conn.cursor()
         new_image_names = []
@@ -229,11 +217,6 @@ async def add_item(name: str = Form(..., max_length=32),
         cur.execute('''INSERT INTO items(name, category_id, image_filename, user_id, oneliner_description, detailed_description, price, num_files) VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
                     (name, category_result[0], new_image_names[0], user_id, oneliner_description, detailed_description, price, len(new_image_names)))
 
-        # cur.execute(f'''INSERT INTO files(file1) VALUES(?)''',
-        #             (new_image_names[0]))
-        # for i in range(2, len(new_image_names)+1):
-        #     cur.execute(
-        #         f'''UPDATE files SET file{i}={new_image_name[i-1]} WHERE file1={new_image_names[0]}''')
         if (len(new_image_names) == 1):
             cur.execute(f'''INSERT INTO files(quantity, file1) VALUES(?, ?)''',
                         (1, new_image_names[0]))
