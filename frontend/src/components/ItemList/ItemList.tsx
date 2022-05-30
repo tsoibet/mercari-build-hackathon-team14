@@ -33,8 +33,10 @@ export const ItemList: React.FC<Prop> = (props) => {
       .then(data => {
         console.log('GET success:', data);
         for (var i = 0; i < data.items.length; i++) {
-          if (data.items[i].image_filename.includes(".jpg")) { data.items[i].isImage = true }
-          else data.items[i].isImage = false
+          if (data.items[i].image_filename.includes(".jpg"))
+            data.items[i].isImage = true
+          else
+            data.items[i].isImage = false
         }
         setItems(data.items);
         console.log('GET success:', data.items);
@@ -65,7 +67,7 @@ export const ItemList: React.FC<Prop> = (props) => {
               </div> :
               <div className="ItemImage">
                 <Link to={`/items/${item.id}`}>
-                  <video controls muted height="140">
+                  <video muted height="140">
                     <source src={server + "/image/" + item.image_filename} type="video/mp4" />
                   </video>
                 </Link>

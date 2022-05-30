@@ -4,6 +4,8 @@ import pathlib
 import json
 import sqlite3
 import hashlib
+from tkinter import image_names
+from unittest import result
 from fastapi import FastAPI, Form, HTTPException, File, UploadFile, Body
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -52,6 +54,7 @@ def init_database():
     except Exception as e:
         logger.warn(f"Failed to initialize database. Error message: {e}")
 
+
 @app.get("/")
 def root():
     return {"message": "Hello, world!"}
@@ -85,7 +88,9 @@ def get_item(item_id: int):
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         cur.execute('''
-            SELECT items.id, items.name, category.name as category, items.image_filename, items.user_id
+            SELECT items.id, items.name, category.name as category, 
+            items.image_filename, items.user_id,items.oneliner_description,
+            items.detailed_description, items.price
             FROM items INNER JOIN category
             ON category.id = items.category_id
             WHERE items.id = (?)
@@ -95,6 +100,49 @@ def get_item(item_id: int):
             raise HTTPException(status_code=404, detail="Item not found")
         logger.info(f"Returning the item of id: {item_id}.")
         return item_result
+    except HTTPException:
+        logger.info("Failed to get item: Item not found")
+        return "Item not found"
+    except Exception as e:
+        logger.warn(f"Failed to get item. Error message: {e}")
+        return ERR_MSG
+
+
+@app.get("/items/image/{item_id}")
+def get_item_image(item_id: int):
+    logger.info(f"Received get_item request of item id: {item_id}.")
+    try:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute('''
+            SELECT num_files
+            FROM items
+            WHERE items.id = (?)
+        ''', (item_id, ))
+        num = cur.fetchone()["num_files"]
+        item_id -= 13
+        result = {}
+        if(num == 1):
+            result = cur.execute('''SELECT quantity, file1
+                        FROM files
+                        WHERE id = (?) ''', (item_id, )).fetchone()
+        if(num == 2):
+            result = cur.execute('''SELECT quantity, file1, file2
+                        FROM files
+                        WHERE id = (?) ''', (item_id, )).fetchone()
+        if(num == 3):
+            result = cur.execute('''SELECT quantity, file1, file2, file3
+                        FROM files
+                        WHERE id = (?) ''', (item_id, )).fetchone()
+        if(num == 4):
+            result = cur.execute('''SELECT quantity, file1, file2, file3, file4
+                        FROM files
+                        WHERE id = (?) ''', (item_id, )).fetchone()
+        if(num == 5):
+            result = cur.execute('''SELECT quantity, file1, file2, file3, file4, file5
+                        FROM files
+                        WHERE id = (?) ''', (item_id, )).fetchone()
+        return(result)
     except HTTPException:
         logger.info("Failed to get item: Item not found")
         return "Item not found"
@@ -136,21 +184,30 @@ async def add_item(name: str = Form(..., max_length=32),
     logger.info(f"Received add_item request.")
     logger.info(image[0].content_type)
 
-    for file in image:
-        if file.content_type == "image/jpeg":
-            file_extension = ".jpg"
-        elif file.content_type == "video/mp4":
-            file_extension = ".mp4"
-        elif file.content_type == "video/quicktime":
-            file_extension = ".mp4"
-        else:
-            raise HTTPException(
-                400, detail="Image not in jpg format or video not in mp4 format.")
+    # for file in image:
+    #     if file.content_type == "image/jpeg":
+    #         file_extension = ".jpg"
+    #     elif file.content_type == "video/mp4":
+    #         file_extension = ".mp4"
+    #     elif file.content_type == "video/quicktime":
+    #         file_extension = ".mp4"
+    #     else:
+    #         raise HTTPException(
+    #             400, detail="Image not in jpg format or video not in mp4 format.")
 
     try:
         cur = conn.cursor()
         new_image_names = []
         for file in image:
+            if file.content_type == "image/jpeg":
+                file_extension = ".jpg"
+            elif file.content_type == "video/mp4":
+                file_extension = ".mp4"
+            elif file.content_type == "video/quicktime":
+                file_extension = ".mp4"
+            else:
+                raise HTTPException(
+                    400, detail="Image not in jpg format or video not in mp4 format.")
             image_binary = await file.read()
             new_image_name = hashlib.sha256(
                 image_binary).hexdigest() + file_extension
@@ -169,8 +226,8 @@ async def add_item(name: str = Form(..., max_length=32),
                 '''SELECT id FROM category WHERE name = (?)''', (category, ))
             category_result = cur.fetchone()
 
-        cur.execute('''INSERT INTO items(name, category_id, image_filename, user_id, oneliner_description, detailed_description, price) VALUES (?, ?, ?, ?, ?, ?, ?)''',
-                    (name, category_result[0], new_image_names[0], user_id, oneliner_description, detailed_description, price))
+        cur.execute('''INSERT INTO items(name, category_id, image_filename, user_id, oneliner_description, detailed_description, price, num_files) VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+                    (name, category_result[0], new_image_names[0], user_id, oneliner_description, detailed_description, price, len(new_image_names)))
 
         # cur.execute(f'''INSERT INTO files(file1) VALUES(?)''',
         #             (new_image_names[0]))
@@ -178,20 +235,20 @@ async def add_item(name: str = Form(..., max_length=32),
         #     cur.execute(
         #         f'''UPDATE files SET file{i}={new_image_name[i-1]} WHERE file1={new_image_names[0]}''')
         if (len(new_image_names) == 1):
-            cur.execute(f'''INSERT INTO files(file1) VALUES(?)''',
-                        (new_image_names[0], ))
+            cur.execute(f'''INSERT INTO files(quantity, file1) VALUES(?, ?)''',
+                        (1, new_image_names[0]))
         if (len(new_image_names) == 2):
-            cur.execute(f'''INSERT INTO files(file1, file2) VALUES(?, ?)''',
-                        (new_image_names[0], new_image_names[1]))
+            cur.execute(f'''INSERT INTO files(quantity, file1, file2) VALUES(?, ?, ?)''',
+                        (2, new_image_names[0], new_image_names[1]))
         if (len(new_image_names) == 3):
-            cur.execute(f'''INSERT INTO files(file1, file2, file3) VALUES(?, ?, ?)''',
-                        (new_image_names[0], new_image_names[1], new_image_names[2]))
+            cur.execute(f'''INSERT INTO files(quantity, file1, file2, file3) VALUES(?, ?, ?, ?)''',
+                        (3, new_image_names[0], new_image_names[1], new_image_names[2]))
         if (len(new_image_names) == 4):
-            cur.execute(f'''INSERT INTO files(file1, file2, file3, file4) VALUES(?, ?, ?, ?)''',
-                        (new_image_names[0], new_image_names[1], new_image_names[2], new_image_names[3]))
+            cur.execute(f'''INSERT INTO files(quantity, file1, file2, file3, file4) VALUES(?, ?, ?, ?, ?)''',
+                        (4, new_image_names[0], new_image_names[1], new_image_names[2], new_image_names[3]))
         if (len(new_image_names) == 5):
-            cur.execute(f'''INSERT INTO files(file1, file2, file3, file4, file5) VALUES(?, ?, ?, ?, ?)''',
-                        (new_image_names[0], new_image_names[1], new_image_names[2], new_image_names[3], new_image_names[4]))
+            cur.execute(f'''INSERT INTO files(quantity, file1, file2, file3, file4, file5) VALUES(?, ?, ?, ?, ?, ?)''',
+                        (5, new_image_names[0], new_image_names[1], new_image_names[2], new_image_names[3], new_image_names[4]))
         conn.commit()
 
         logger.info(
@@ -300,11 +357,11 @@ def get_user_external_history(user_id: int):
 
 @ app.get("/external-history/{history_id}")
 def get_external_history(history_id: int):
-   logger.info("Received get_external_history request.")
-   try:
-       conn.row_factory = sqlite3.Row
-       cur = conn.cursor()
-       cur.execute('''
+    logger.info("Received get_external_history request.")
+    try:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute('''
            SELECT
            external_purchase_history.name as itemName,
            external_purchase_history.image_filename as imageFilename,
@@ -319,38 +376,38 @@ def get_external_history(history_id: int):
            WHERE
            external_purchase_history.id=(?)
        ''', (history_id, ))
-       item_result = cur.fetchone()
-       if (item_result is None):
-           raise HTTPException(status_code=404, detail="Item not found")
-       logger.info(
-           f"Returning the external purchased item of id: {history_id}")
-       return item_result
-   except HTTPException:
-       logger.info("Failed to get external purchased item: Item not found")
-       return "Item not found"
-   except Exception as e:
-       logger.warn(
-           f"Failed to get external purchase history. Error message: {e}")
-       return ERR_MSG
+        item_result = cur.fetchone()
+        if (item_result is None):
+            raise HTTPException(status_code=404, detail="Item not found")
+        logger.info(
+            f"Returning the external purchased item of id: {history_id}")
+        return item_result
+    except HTTPException:
+        logger.info("Failed to get external purchased item: Item not found")
+        return "Item not found"
+    except Exception as e:
+        logger.warn(
+            f"Failed to get external purchase history. Error message: {e}")
+        return ERR_MSG
 
 
 @app.get("/categories")
 def get_categories():
-   logger.info("Received get_categories request.")
-   try:
-       conn.row_factory = sqlite3.Row
-       cur = conn.cursor()
-       cur.execute('''
+    logger.info("Received get_categories request.")
+    try:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute('''
            SELECT id, name FROM category
        ''')
-       categories = cur.fetchall()
-       category_list = [dict(category) for category in categories]
-       categories_json = {"categories": category_list}
-       logger.info("Returning all categories.")
-       return categories_json
-   except Exception as e:
-       logger.warn(f"Failed to get categories. Error message: {e}")
-       return ERR_MSG
+        categories = cur.fetchall()
+        category_list = [dict(category) for category in categories]
+        categories_json = {"categories": category_list}
+        logger.info("Returning all categories.")
+        return categories_json
+    except Exception as e:
+        logger.warn(f"Failed to get categories. Error message: {e}")
+        return ERR_MSG
 
 
 @ app.on_event("shutdown")
@@ -383,9 +440,10 @@ def edit_image(
     if w != 0 and l != 0:
         removeBackground(image, image_filename, x, y, w, l)
 
-    color = [R,G,B]
+    color = [R, G, B]
     res = addBackground(image, image_filename, color, background_id)
     return res
+
 
 @app.delete("/edit")
 def delete_edited_image(image_filename: str):
