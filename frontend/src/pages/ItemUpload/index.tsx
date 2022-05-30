@@ -134,13 +134,13 @@ const ItemUpload: React.FC = () => {
 		if (selectedCrop) {
 			const res = await axios.post(
 				"http://localhost:9000/edit",
-				previewImage.split(",")[1],
+				tempPreviewImage.split(",")[1],
 				{
 					params: {
 						R: 0,
 						G: 0,
 						B: 0,
-						background_id: bgId,
+						background_id: bgId + 1,
 						x: 0,
 						y: 0,
 						w: 0,
@@ -168,7 +168,7 @@ const ItemUpload: React.FC = () => {
 		if (selectedCrop) {
 			const res = await axios.post(
 				"http://localhost:9000/edit",
-				previewImage.split(",")[1],
+				tempPreviewImage.split(",")[1],
 				{
 					params: {
 						R: color.rgb.r,
