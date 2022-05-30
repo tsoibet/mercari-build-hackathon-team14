@@ -19,6 +19,7 @@ import {
 	Upload,
 	Modal,
 	Divider,
+	message,
 } from "antd";
 import type { UploadFile } from "antd/es/upload/interface";
 import type { RcFile, UploadProps } from "antd/es/upload";
@@ -56,9 +57,9 @@ const ItemUpload: React.FC = () => {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const [fileList, setFileList] = useState<UploadFile[]>([]);
 	const [color, setColor] = useState("");
-	console.log(color);
 	const [selectedCrop, setSelectedCrop] = useState(false);
 	const [crop, setCrop] = useState<Crop>();
+	const [curretnPreviewId, setCurrentPreviewId] = useState("");
 	const bgArray = [
 		Background1,
 		Background2,
@@ -84,13 +85,16 @@ const ItemUpload: React.FC = () => {
 	const handleCancel = () => {
 		setPreviewVisible(false);
 		setCrop(undefined);
+		setSelectedCrop(false);
+		setColor("");
+		setTempPreviewImage("");
 	};
 
 	const handlePreview = async (file: UploadFile) => {
 		if (!file.url && !file.preview) {
 			file.preview = await getBase64(file.originFileObj as RcFile);
 		}
-
+		setCurrentPreviewId(file.uid);
 		setPreviewImage(file.url || (file.preview as string));
 		setPreviewVisible(true);
 		setPreviewTitle(
@@ -119,15 +123,17 @@ const ItemUpload: React.FC = () => {
 	};
 
 	const uploadProps: UploadProps = {
-		action: con,
 		listType: "picture-card",
 		fileList: fileList,
 		showUploadList: {
 			previewIcon: <EditOutlined style={{ color: "white" }} />,
 		},
-
+		action: "",
 		onPreview: handlePreview,
 		onChange: handleChange,
+		beforeUpload(file) {
+			return false;
+		},
 	};
 
 	const cropWithBg = async (bgId: Number) => {
@@ -151,9 +157,6 @@ const ItemUpload: React.FC = () => {
 					},
 				}
 			);
-			console.log(res);
-			// console.log(res);
-			console.log("data:image/jpeg;base64," + res.data);
 			setPreviewImage("data:image/jpeg;base64," + res.data);
 			setCrop(undefined);
 		}
@@ -161,10 +164,6 @@ const ItemUpload: React.FC = () => {
 
 	const handleChangeComplete = async (color: any) => {
 		setColor(color.rgb);
-		console.log(color.rgb);
-		console.log(color.rgb.r);
-		console.log(color.rgb.g);
-		console.log(color.rgb.b);
 		if (selectedCrop) {
 			const res = await axios.post(
 				"http://localhost:9000/edit",
@@ -185,9 +184,6 @@ const ItemUpload: React.FC = () => {
 					},
 				}
 			);
-			console.log(res);
-			// console.log(res);
-			console.log("data:image/jpeg;base64," + res.data);
 			setPreviewImage("data:image/jpeg;base64," + res.data);
 			setCrop(undefined);
 		}
@@ -195,18 +191,6 @@ const ItemUpload: React.FC = () => {
 
 	const handleColorChange = (color: any, event: any) => {
 		setColor(color.hex);
-	};
-
-	const processMedia = async (media: any[]) => {
-		console.log(media);
-		let imageArray: any[] = [];
-		media.map(async (media: any, i: Number) => {
-			const currentBase64 = await getBase64(media.originFileObj as RcFile);
-			console.log(currentBase64);
-			imageArray.push(currentBase64);
-		});
-		console.log(imageArray);
-		return imageArray;
 	};
 
 	const onFinish = async (values: any) => {
@@ -221,7 +205,6 @@ const ItemUpload: React.FC = () => {
 		formdata.append("detailed_description", values.description);
 		formdata.append("price", values.price);
 		for (let i = 0; i < imageArray.length; i++) {
-			console.log(imageArray[i]);
 			formdata.append("image", imageArray[i]);
 		}
 		const res = await axios.post("http://localhost:9000/items", formdata);
@@ -250,9 +233,6 @@ const ItemUpload: React.FC = () => {
 					},
 				}
 			);
-			console.log(res);
-			// console.log(res);
-			console.log("data:image/jpeg;base64," + res.data);
 			setTempPreviewImage(previewImage);
 			setPreviewImage("data:image/jpeg;base64," + res.data);
 			setCrop(undefined);
@@ -315,6 +295,40 @@ const ItemUpload: React.FC = () => {
 			fetchCategories();
 		}
 	});
+
+	const undoImage = () => {
+		if (tempPreviewImage.length !== 0) {
+			setPreviewImage(tempPreviewImage);
+			setSelectedCrop(false);
+			setTempPreviewImage("");
+		}
+	};
+
+	//@ts-ignore
+	function dataURLtoFile(dataurl, filename) {
+		var arr = dataurl.split(","),
+			mime = arr[0].match(/:(.*?);/)[1],
+			bstr = atob(arr[1]),
+			n = bstr.length,
+			u8arr = new Uint8Array(n);
+		while (n--) {
+			u8arr[n] = bstr.charCodeAt(n);
+		}
+		return new File([u8arr], filename, { type: mime });
+	}
+
+	const saveImage = () => {
+		const getFile = fileList.filter((file) => file.uid === curretnPreviewId)[0];
+		const getFileIndex = fileList.indexOf(getFile);
+		let updatedObj = { ...getFile };
+		var file = dataURLtoFile(previewImage, getFile.name);
+		updatedObj["preview"] = previewImage;
+		updatedObj["thumbUrl"] = previewImage;
+		//@ts-ignore
+		updatedObj["originFileObj"] = file;
+		fileList[getFileIndex] = updatedObj;
+		message.success("Image saved successfully");
+	};
 
 	return (
 		<div className="ItemUpload">
@@ -400,10 +414,7 @@ const ItemUpload: React.FC = () => {
 							getValueFromEvent={normFile}
 							rules={[{ required: true }]}
 						>
-							<Upload
-								{...uploadProps}
-								// action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
-							>
+							<Upload {...uploadProps}>
 								{fileList.length >= 5 ? null : uploadButton}
 							</Upload>
 						</Form.Item>
@@ -463,10 +474,8 @@ const ItemUpload: React.FC = () => {
 									className="ItemUpload__container__form__uploadModal__button"
 								/>
 								<UndoOutlined
-									onClick={() => {
-										setPreviewImage(tempPreviewImage);
-										setSelectedCrop(false);
-									}}
+									disabled={true}
+									onClick={undoImage}
 									className="ItemUpload__container__form__uploadModal__button"
 								/>
 							</div>
@@ -507,6 +516,19 @@ const ItemUpload: React.FC = () => {
 											})}
 										</div>
 									</div>
+								</div>
+							) : (
+								""
+							)}
+							{tempPreviewImage.length !== 0 ? (
+								<div>
+									<Button
+										onClick={saveImage}
+										type="primary"
+										className="ItemUpload__container__form__uploadModal__confirmButton"
+									>
+										Save Image
+									</Button>
 								</div>
 							) : (
 								""
