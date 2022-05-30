@@ -272,7 +272,8 @@ def get_user_external_history(user_id: int):
             external_purchase_history.id as historyId,
             external_purchase_history.name as itemName,
             external_purchase_history.image_filename as imageFilename,
-            source.name as sourceName
+            source.name as sourceName,
+            external_purchase_history.price
             FROM
             external_purchase_history INNER JOIN source
             ON
