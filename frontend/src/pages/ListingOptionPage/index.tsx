@@ -48,7 +48,7 @@ const ListingOptionPage: React.FC = () => {
             case 'Amazon':
                 return <AmazonOutlined style={{ color: "#EF8C3B" }} />;
             default:
-                return <QuestionOutlined />;
+                return;
         }
     }
 
