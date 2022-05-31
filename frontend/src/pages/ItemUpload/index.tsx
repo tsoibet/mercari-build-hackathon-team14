@@ -327,7 +327,8 @@ const ItemUpload: React.FC = () => {
 		//@ts-ignore
 		updatedObj["originFileObj"] = file;
 		fileList[getFileIndex] = updatedObj;
-		message.success("Image saved successfully");
+		message.success("Image saved successfully", 5);
+		setPreviewVisible(false);
 	};
 
 	return (
