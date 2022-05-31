@@ -12,7 +12,7 @@ uvicorn main:app --reload --port 9000
 2. run the commands below in an other terminal:
 
 ```
-cd temp-web
+cd frontend
 npm ci
 npm start
 ```
