@@ -1,3 +1,5 @@
+*Build@Mercari Hackathon Team 14*
+
 How to use:
 
 1. Run the commands below in a terminal:
@@ -18,20 +20,19 @@ npm start
 3. Visit http://localhost:3000
 4. Test all API endpoints on http://localhost:9000/docs
 
-This simple mercari provides basic functions as following:
-- List item
-- Show items
-- Display item images
-- Get item by id (API only)
-- Search items by keyword in name (API only)
-- Delete item (API only)
+This simple mercari provides the below 3 new listing festures:
 
-*# Video upload is also implemented in backend but the simple web is not able to show videos.*
+- External purchase history
+- Video upload
+- Image background removal
 
-Note that data validation is implemented on both client and server side.
-Below are the constraints:
-- Item name must be no longer than 32 characters
-- Category name must be no longer than 12 characters
-- Image must be in jpg or jpeg format
-- Video must be in mov format
+The new UI design:
+
+<img width="500" alt="Screen Shot 2022-05-31 at 17 50 32" src="https://user-images.githubusercontent.com/59286368/171133289-69976d72-5efc-4700-930a-c81a591bcacf.png">
+
+<img width="500" alt="Screen Shot 2022-05-31 at 17 50 39" src="https://user-images.githubusercontent.com/59286368/171133335-f0558cbb-7b25-4534-91ea-b05602549ab8.png">
+
+<img width="500" alt="Screen Shot 2022-05-31 at 17 50 58" src="https://user-images.githubusercontent.com/59286368/171133398-72413c64-9813-4394-924e-9b8b89422f0a.png">
+
+<img width="500" alt="Screen Shot 2022-05-31 at 17 51 28" src="https://user-images.githubusercontent.com/59286368/171133512-90215376-51ca-4c5b-a3e3-7387136de6d7.png">
 
