@@ -1,5 +1,7 @@
 # Build@Mercari Hackathon Team 14
 
+:spiral_calendar: *23 May 2022 - 31 May 2022*
+
 ### :bulb: 3 new listing festures:
 
 - External purchase history
